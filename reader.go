@@ -1,14 +1,14 @@
 package main
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
+	"io"
 )
 
-// Parse Lisp data into an abstract syntax tree.
-func Parse(src []byte) (node Node, err error) {
-	s := NewScanner(bytes.NewReader(src))
+// Read parses the next expression from a stream of tokens. When the
+// end of the stream is reached, then io.EOF is returned.
+func Read(s *Scanner) (node Node, err error) {
 	tok, lit := s.Scan()
 	switch tok {
 	case ILLEGAL:
@@ -16,30 +16,30 @@ func Parse(src []byte) (node Node, err error) {
 	case ATOM:
 		node = &AtomExpr{Name: lit}
 	case LPAREN:
-		node, err = parseList(s)
+		node, err = readList(s)
 	case RPAREN:
-		err = errors.New("Unbalanced closed parenthesis")
+		err = errors.New("unbalanced closed parenthesis")
 	case EOF:
-		// nothing to do
+		err = io.EOF
 	default:
 		err = fmt.Errorf("unsupported token: %s: %q", tok, lit)
 	}
 	return
 }
 
-func parseList(s *Scanner) (v *ListExpr, err error) {
+func readList(s *Scanner) (v *ListExpr, err error) {
 	tok, lit := s.Scan()
 	switch tok {
 	case EOF:
-		err = errors.New("Premature EOF")
+		err = errors.New("premature EOF")
 	case ATOM:
 		v = &ListExpr{Car: &AtomExpr{Name: lit}}
-		v.Cdr, err = parseList(s)
+		v.Cdr, err = readList(s)
 	case LPAREN:
 		v = &ListExpr{}
-		v.Car, err = parseList(s)
+		v.Car, err = readList(s)
 		if err == nil {
-			v.Cdr, err = parseList(s)
+			v.Cdr, err = readList(s)
 		}
 	case RPAREN:
 		// nothing to do

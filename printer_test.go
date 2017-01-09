@@ -11,8 +11,8 @@ func TestFprint(t *testing.T) {
 		want string
 	}{
 		{&AtomExpr{Name: "a"}, "a"},
-		{NIL, "()"},
-		{&ListExpr{Car: NIL, Cdr: NIL}, "(())"},
+		{NIL, "nil"},
+		{&ListExpr{Car: NIL, Cdr: NIL}, "(nil)"},
 		{&ListExpr{Car: &AtomExpr{Name: "a"}, Cdr: NIL}, "(a)"},
 		{&ListExpr{
 			Car: &AtomExpr{Name: "a"},

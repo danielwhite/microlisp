@@ -10,8 +10,12 @@ func (e Error) Error() string {
 
 var DefaultEvaluator = &evaluator{
 	env: map[string]Node{
+		"t":    T,
+		"nil":  NIL,
+		"atom": arg1(atom),
 		"car":  arg1(car),
 		"cdr":  arg1(cdr),
+		"cons": arg2(cons),
 		"list": Func(list),
 	},
 }
@@ -80,6 +84,10 @@ func (e *evaluator) invoke(node Node, args []Node) Node {
 }
 
 func (e *evaluator) evlis(node Node) []Node {
+	if node == NIL {
+		return []Node{}
+	}
+
 	list, ok := node.(*ListExpr)
 	if !ok {
 		e.error("evlis: improper argument list")
@@ -87,8 +95,12 @@ func (e *evaluator) evlis(node Node) []Node {
 
 	var nodes []Node
 	next := list
-	for next != NIL {
+	for {
 		nodes = append(nodes, e.eval(next.Car))
+
+		if next.Cdr == NIL {
+			break
+		}
 
 		v, ok := next.Cdr.(*ListExpr)
 		if !ok {
@@ -103,7 +115,7 @@ func (e *evaluator) evlis(node Node) []Node {
 // evquote evaluates the quote special form.
 func (e *evaluator) evquote(expr *ListExpr) Node {
 	v, ok := expr.Cdr.(*ListExpr)
-	if !ok || v == NIL || v.Cdr != NIL {
+	if !ok || v.Cdr != NIL {
 		e.errorf("ill-formed special form: %s", expr)
 	}
 	return v.Car

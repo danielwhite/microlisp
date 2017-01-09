@@ -13,7 +13,10 @@ func (e *ListExpr) String() string {
 }
 
 // NIL is the empty list.
-var NIL = (*ListExpr)(nil)
+var NIL = &AtomExpr{"nil"}
+
+// T is the true value.
+var T = &AtomExpr{"t"}
 
 type AtomExpr struct {
 	Name string

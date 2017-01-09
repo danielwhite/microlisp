@@ -60,6 +60,7 @@ func BenchmarkInvoke(b *testing.B) {
 		{"list", "1 2 3"},
 		{"car", "(quote (x y z))"},
 		{"cdr", "(quote (a b c))"},
+		{"cons", "1 2"},
 	}
 
 	for _, tc := range testCases {

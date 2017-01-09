@@ -12,18 +12,34 @@ func TestEval(t *testing.T) {
 		want    string // value of the expression
 		wantErr string // error of a bad expression
 	}{
+		{"t", "t", ""},
+		{"nil", "nil", ""},
+
+		{"(atom t)", "t", ""},
+		{"(atom nil)", "t", ""},
+		{"(atom ())", "t", ""},
+		{"(atom (cons 1 2))", "nil", ""},
+		{"(atom (cons 1 (cons 2 nil)))", "nil", ""},
+
 		{"(quote a)", "a", ""},
 		{"(quote (a b c))", "(a b c)", ""},
 		{"(quote)", "", "ill-formed special form: (quote)"},
 		{"(quote a b)", "", "ill-formed special form: (quote a b)"},
+
 		{"(car (quote (1 2)))", "1", ""},
 		{"(car (quote 1))", "", "car: 1 is not a pair"},
+
 		{"(cdr (quote (1 2)))", "(2)", ""},
 		{"(cdr (quote 1))", "", "cdr: 1 is not a pair"},
-		{"(list)", "()", ""},
+
+		{"(cons 1 2)", "(1 . 2)", ""},
+		{"(cons 1 (cons 2 ()))", "(1 2)", ""},
+
+		{"(list)", "nil", ""},
 		{"(list 1)", "(1)", ""},
 		{"(list 1 2)", "(1 2)", ""},
 		{"(list 1 2 3)", "(1 2 3)", ""},
+
 		{"((1 2) 3 4)", "", "invoke: 1 is not a function"},
 		{"((car (list cdr car)) (quote (1 2 3)))", "(2 3)", ""},
 	}

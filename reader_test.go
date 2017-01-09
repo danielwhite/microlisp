@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"io"
 	"reflect"
 	"strings"
@@ -43,12 +42,6 @@ func TestRead(t *testing.T) {
 				t.Fatalf("test failed due to read error: %s", err)
 			}
 
-			var buf bytes.Buffer
-			Fprint(&buf, got)
-			gotExpr := buf.String()
-			if tc.expr != gotExpr {
-				t.Errorf("want %s, got %s", tc.expr, gotExpr)
-			}
 			if !reflect.DeepEqual(tc.want, got) {
 				t.Errorf("want %#v, got %#v", tc.want, got)
 			}

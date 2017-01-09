@@ -27,22 +27,31 @@ func Read(s *Scanner) (node Node, err error) {
 	return
 }
 
-func readList(s *Scanner) (v *ListExpr, err error) {
+func readList(s *Scanner) (node Node, err error) {
 	tok, lit := s.Scan()
 	switch tok {
 	case EOF:
 		err = errors.New("premature EOF")
 	case ATOM:
-		v = &ListExpr{Car: &AtomExpr{Name: lit}}
-		v.Cdr, err = readList(s)
-	case LPAREN:
-		v = &ListExpr{}
-		v.Car, err = readList(s)
-		if err == nil {
-			v.Cdr, err = readList(s)
+		var cdr Node
+		cdr, err = readList(s)
+		if err != nil {
+			break
 		}
+		node = &ListExpr{&AtomExpr{Name: lit}, cdr}
+	case LPAREN:
+		var car, cdr Node
+		car, err = readList(s)
+		if err != nil {
+			break
+		}
+		cdr, err = readList(s)
+		if err != nil {
+			break
+		}
+		node = &ListExpr{car, cdr}
 	case RPAREN:
-		// nothing to do
+		node = NIL
 	default:
 		err = fmt.Errorf("unexpected token in list: %s", tok)
 	}

@@ -38,22 +38,18 @@ func (p *printer) printAtom(v *AtomExpr) {
 }
 
 func (p *printer) printList(v *ListExpr) {
-	if v == NIL {
-		p.buf.WriteString("()")
-		return
-	}
-
 	p.buf.WriteByte('(')
 	for {
 		p.printNode(v.Car)
+
+		if v.Cdr == NIL {
+			break
+		}
 
 		next, ok := v.Cdr.(*ListExpr)
 		if !ok {
 			p.buf.WriteString(" . ")
 			p.printNode(v.Cdr)
-			break
-		}
-		if next == NIL {
 			break
 		}
 

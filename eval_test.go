@@ -14,8 +14,18 @@ func TestEval(t *testing.T) {
 	}{
 		{"(quote a)", "a", ""},
 		{"(quote (a b c))", "(a b c)", ""},
-		{"(quote)", "", "cadr: <nil> is not a pair"},
-		{"(quote a b)", "", "ill-formed special form"},
+		{"(quote)", "", "ill-formed special form: (quote)"},
+		{"(quote a b)", "", "ill-formed special form: (quote a b)"},
+		{"(car (quote (1 2)))", "1", ""},
+		{"(car (quote 1))", "", "car: 1 is not a pair"},
+		{"(cdr (quote (1 2)))", "(2)", ""},
+		{"(cdr (quote 1))", "", "cdr: 1 is not a pair"},
+		{"(list)", "()", ""},
+		{"(list 1)", "(1)", ""},
+		{"(list 1 2)", "(1 2)", ""},
+		{"(list 1 2 3)", "(1 2 3)", ""},
+		{"((1 2) 3 4)", "", "invoke: 1 is not a function"},
+		{"((car (list cdr car)) (quote (1 2 3)))", "(2 3)", ""},
 	}
 	for _, tc := range testCases {
 		t.Run(tc.expr, func(t *testing.T) {

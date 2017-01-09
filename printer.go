@@ -13,6 +13,13 @@ func Fprint(w io.Writer, node Node) error {
 	return err
 }
 
+// Sprint prints an AST node to a string.
+func Sprint(node Node) string {
+	var buf bytes.Buffer
+	Fprint(&buf, node)
+	return buf.String()
+}
+
 type printer struct {
 	buf bytes.Buffer
 }

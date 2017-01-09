@@ -8,7 +8,13 @@ func (e Error) Error() string {
 	return string(e)
 }
 
-var DefaultEvaluator = &evaluator{}
+var DefaultEvaluator = &evaluator{
+	env: map[string]Node{
+		"car":  arg1(car),
+		"cdr":  arg1(cdr),
+		"list": Func(list),
+	},
+}
 
 // Eval returns the value for the given expression within the scope of
 // the default evaluator.
@@ -16,7 +22,9 @@ func Eval(expr Node) (Node, error) {
 	return DefaultEvaluator.Eval(expr)
 }
 
-type evaluator struct{}
+type evaluator struct {
+	env map[string]Node
+}
 
 func (e *evaluator) error(err string) {
 	panic(Error(err))
@@ -41,25 +49,62 @@ func (e *evaluator) Eval(expr Node) (value Node, err error) {
 func (e *evaluator) eval(node Node) Node {
 	switch x := node.(type) {
 	case *AtomExpr:
+		if v, ok := e.env[x.Name]; ok {
+			return v
+		}
 		return x // auto-quote
 	case *ListExpr:
 		switch y := x.Car.(type) {
 		case *AtomExpr:
 			switch y.Name {
 			case "quote":
-				return e.cadr(x)
-			default:
-				e.errorf("eval: %q is an unknown special form", y.Name)
+				return e.evquote(x)
 			}
 		}
+		fn := e.eval(x.Car)
+		args := e.evlis(x.Cdr)
+		return e.invoke(fn, args)
+	default:
+		e.errorf("eval: unexpected node of %T: %v", x, x)
 	}
 	return NIL
 }
 
-func (e *evaluator) cadr(v *ListExpr) Node {
-	v, ok := v.Cdr.(*ListExpr)
-	if !ok || v == NIL {
-		e.errorf("cadr: %v is not a pair", v)
+// invoke applies a list of arguments to a function.
+func (e *evaluator) invoke(node Node, args []Node) Node {
+	fn, ok := node.(Func)
+	if !ok {
+		e.errorf("invoke: %s is not a function", node)
+	}
+	return fn(args)
+}
+
+func (e *evaluator) evlis(node Node) []Node {
+	list, ok := node.(*ListExpr)
+	if !ok {
+		e.error("evlis: improper argument list")
+	}
+
+	var nodes []Node
+	next := list
+	for next != NIL {
+		nodes = append(nodes, e.eval(next.Car))
+
+		v, ok := next.Cdr.(*ListExpr)
+		if !ok {
+			e.error("evlis: improper argument list")
+		}
+
+		next = v
+	}
+	return nodes
+}
+
+// evquote evaluates the quote special form.
+func (e *evaluator) evquote(expr *ListExpr) Node {
+	v, ok := expr.Cdr.(*ListExpr)
+	if !ok || v == NIL || v.Cdr != NIL {
+		e.errorf("ill-formed special form: %s", expr)
 	}
 	return v.Car
 }

@@ -1,9 +1,19 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"reflect"
+)
 
 func atom(arg Node) Node {
 	if _, ok := arg.(*AtomExpr); ok {
+		return T
+	}
+	return NIL
+}
+
+func equal(a Node, b Node) Node {
+	if reflect.DeepEqual(a, b) {
 		return T
 	}
 	return NIL

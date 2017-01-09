@@ -21,6 +21,10 @@ func TestEval(t *testing.T) {
 		{"(atom (cons 1 2))", "nil", ""},
 		{"(atom (cons 1 (cons 2 nil)))", "nil", ""},
 
+		{"(equal (car (quote (a b))) (quote a))", "t", ""},
+		{"(equal (cdr (quote (a b))) (quote a))", "nil", ""},
+		{"(equal (quote (a (b c) d)) (list (quote a) (quote (b c)) (quote d)))", "t", ""},
+
 		{"(quote a)", "a", ""},
 		{"(quote (a b c))", "(a b c)", ""},
 		{"(quote)", "", "ill-formed special form: (quote)"},

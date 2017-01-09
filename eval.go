@@ -10,13 +10,14 @@ func (e Error) Error() string {
 
 var DefaultEvaluator = &evaluator{
 	env: map[string]Node{
-		"t":    T,
-		"nil":  NIL,
-		"atom": arg1("atom", atom),
-		"car":  arg1("car", car),
-		"cdr":  arg1("cdr", cdr),
-		"cons": arg2("cons", cons),
-		"list": Func(list),
+		"t":     T,
+		"nil":   NIL,
+		"atom":  arg1("atom", atom),
+		"equal": arg2("equal", equal),
+		"car":   arg1("car", car),
+		"cdr":   arg1("cdr", cdr),
+		"cons":  arg2("cons", cons),
+		"list":  Func(list),
 	},
 }
 

@@ -44,19 +44,19 @@ func list(args []Node) Node {
 	return list
 }
 
-func arg1(fn func(Node) Node) Func {
+func arg1(name string, fn func(Node) Node) Func {
 	return func(args []Node) Node {
 		if len(args) != 1 {
-			errorf("car: called with %d arguments; requires exactly 1 argument", len(args))
+			errorf("%s: called with %d arguments; requires exactly 1 argument", name, len(args))
 		}
 		return fn(args[0])
 	}
 }
 
-func arg2(fn func(Node, Node) Node) Func {
+func arg2(name string, fn func(Node, Node) Node) Func {
 	return func(args []Node) Node {
 		if len(args) != 2 {
-			errorf("car: called with %d arguments; requires exactly 2 argument", len(args))
+			errorf("%s: called with %d arguments; requires exactly 2 argument", name, len(args))
 		}
 		return fn(args[0], args[1])
 	}

@@ -12,10 +12,10 @@ var DefaultEvaluator = &evaluator{
 	env: map[string]Node{
 		"t":    T,
 		"nil":  NIL,
-		"atom": arg1(atom),
-		"car":  arg1(car),
-		"cdr":  arg1(cdr),
-		"cons": arg2(cons),
+		"atom": arg1("atom", atom),
+		"car":  arg1("car", car),
+		"cdr":  arg1("cdr", cdr),
+		"cons": arg2("cons", cons),
 		"list": Func(list),
 	},
 }

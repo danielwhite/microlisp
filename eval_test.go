@@ -34,6 +34,7 @@ func TestEval(t *testing.T) {
 
 		{"(cons 1 2)", "(1 . 2)", ""},
 		{"(cons 1 (cons 2 ()))", "(1 2)", ""},
+		{"(cons (quote a) (quote (b c)))", "(a b c)", ""},
 
 		{"(list)", "nil", ""},
 		{"(list 1)", "(1)", ""},

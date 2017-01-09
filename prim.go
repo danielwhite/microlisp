@@ -1,9 +1,6 @@
 package main
 
-import (
-	"fmt"
-	"reflect"
-)
+import "fmt"
 
 func atom(arg Node) Node {
 	if _, ok := arg.(*AtomExpr); ok {
@@ -13,8 +10,19 @@ func atom(arg Node) Node {
 }
 
 func equal(a Node, b Node) Node {
-	if reflect.DeepEqual(a, b) {
+	switch x := a.(type) {
+	case *AtomExpr:
+		y, ok := b.(*AtomExpr)
+		if !ok || x.Name != y.Name {
+			return NIL
+		}
 		return T
+	case *ListExpr:
+		y, ok := b.(*ListExpr)
+		if ok && equal(x.Car, y.Car) == T && equal(x.Cdr, y.Cdr) == T {
+			return T
+		}
+		return NIL
 	}
 	return NIL
 }

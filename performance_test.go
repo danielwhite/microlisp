@@ -61,7 +61,7 @@ func BenchmarkInvoke(b *testing.B) {
 		{"car", "(quote (x y z))"},
 		{"cdr", "(quote (a b c))"},
 		{"cons", "1 2"},
-		{"equal", "(quote (a (b c) d)) (quote (a (b c) d))"},
+		{"equal", "(quote (a (b c) d (e (f) g))) (quote (a (b c) d (e (f) g)))"},
 	}
 
 	for _, tc := range testCases {

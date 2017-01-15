@@ -17,7 +17,7 @@ var DefaultEvaluator = &evaluator{
 		"car":   arg1("car", car),
 		"cdr":   arg1("cdr", cdr),
 		"cons":  arg2("cons", cons),
-		"list":  Func(list),
+		"list":  argN("list", list),
 	},
 }
 
@@ -64,6 +64,8 @@ func (e *evaluator) eval(node Node) Node {
 			switch y.Name {
 			case "quote":
 				return e.evquote(x)
+			case "cond":
+				return e.evcond(x)
 			}
 		}
 		fn := e.eval(x.Car)
@@ -81,7 +83,7 @@ func (e *evaluator) invoke(node Node, args []Node) Node {
 	if !ok {
 		e.errorf("invoke: %s is not a function", node)
 	}
-	return fn(args)
+	return fn.Invoke(args)
 }
 
 func (e *evaluator) evlis(node Node) []Node {
@@ -118,6 +120,42 @@ func (e *evaluator) evquote(expr *ListExpr) Node {
 	v, ok := expr.Cdr.(*ListExpr)
 	if !ok || v.Cdr != NIL {
 		e.errorf("ill-formed special form: %s", expr)
+	}
+	return v.Car
+}
+
+// evcond evaluates the cond special form.
+func (e *evaluator) evcond(expr *ListExpr) Node {
+	next := expr.Cdr
+	for next != NIL {
+		// ensure cond form is made of of a proper list
+		v, ok := next.(*ListExpr)
+		if !ok {
+			e.errorf("ill-formed special form: %s", expr)
+		}
+
+		// ensure cadr is a list
+		u, ok := v.Car.(*ListExpr)
+		if !ok {
+			e.errorf("ill-formed special form: %s", expr)
+		}
+
+		// if caadr is true, then we want to return the
+		// evaluation of the cdadr
+		if e.eval(u.Car).Equal(T) {
+			return e.eval(e.cadr(u))
+		}
+
+		next = v.Cdr
+	}
+
+	return NIL
+}
+
+func (e *evaluator) cadr(list *ListExpr) Node {
+	v, ok := list.Cdr.(*ListExpr)
+	if !ok {
+		e.errorf("cadr: %s is not a pair", list.Cdr)
 	}
 	return v.Car
 }

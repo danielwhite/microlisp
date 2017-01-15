@@ -15,6 +15,8 @@ func TestEval(t *testing.T) {
 		{"t", "t", ""},
 		{"nil", "nil", ""},
 
+		{"(equal t (quote t))", "t", ""},
+
 		{"(atom t)", "t", ""},
 		{"(atom nil)", "t", ""},
 		{"(atom ())", "t", ""},
@@ -24,6 +26,8 @@ func TestEval(t *testing.T) {
 		{"(equal (car (quote (a b))) (quote a))", "t", ""},
 		{"(equal (cdr (quote (a b))) (quote a))", "nil", ""},
 		{"(equal (quote (a (b c) d)) (list (quote a) (quote (b c)) (quote d)))", "t", ""},
+		{"(equal car car)", "t", ""},
+		{"(equal car cdr)", "nil", ""},
 
 		{"(quote a)", "a", ""},
 		{"(quote (a b c))", "(a b c)", ""},
@@ -47,6 +51,9 @@ func TestEval(t *testing.T) {
 
 		{"((1 2) 3 4)", "", "invoke: 1 is not a function"},
 		{"((car (list cdr car)) (quote (1 2 3)))", "(2 3)", ""},
+
+		{"(cond ((atom (quote a)) (quote b)) ((quote t) (quote c)))", "b", ""},
+		{"(cond ((atom car) (quote b)) ((quote t) (quote c)))", "c", ""},
 	}
 	for _, tc := range testCases {
 		t.Run(tc.expr, func(t *testing.T) {

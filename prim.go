@@ -10,19 +10,8 @@ func atom(arg Node) Node {
 }
 
 func equal(a Node, b Node) Node {
-	switch x := a.(type) {
-	case *AtomExpr:
-		y, ok := b.(*AtomExpr)
-		if !ok || x.Name != y.Name {
-			return NIL
-		}
+	if a.Equal(b) {
 		return T
-	case *ListExpr:
-		y, ok := b.(*ListExpr)
-		if ok && equal(x.Car, y.Car) == T && equal(x.Cdr, y.Cdr) == T {
-			return T
-		}
-		return NIL
 	}
 	return NIL
 }
@@ -63,21 +52,15 @@ func list(args []Node) Node {
 }
 
 func arg1(name string, fn func(Node) Node) Func {
-	return func(args []Node) Node {
-		if len(args) != 1 {
-			errorf("%s: called with %d arguments; requires exactly 1 argument", name, len(args))
-		}
-		return fn(args[0])
-	}
+	return &Func1{fn}
 }
 
 func arg2(name string, fn func(Node, Node) Node) Func {
-	return func(args []Node) Node {
-		if len(args) != 2 {
-			errorf("%s: called with %d arguments; requires exactly 2 argument", name, len(args))
-		}
-		return fn(args[0], args[1])
-	}
+	return &Func2{fn}
+}
+
+func argN(name string, fn func([]Node) Node) Func {
+	return &FuncN{fn}
 }
 
 func errorf(format string, a ...interface{}) {

@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"strings"
 	"testing"
+
+	"github.com/danielwhite/microlisp/scan"
 )
 
 func TestEval(t *testing.T) {
@@ -57,7 +59,7 @@ func TestEval(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.expr, func(t *testing.T) {
-			s := NewScanner(strings.NewReader(tc.expr))
+			s := scan.New(strings.NewReader(tc.expr))
 			expr, err := Read(s)
 			if err != nil {
 				t.Fatalf("test failed due to read error: %s", err)

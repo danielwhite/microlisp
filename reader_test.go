@@ -5,6 +5,8 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+
+	"github.com/danielwhite/microlisp/scan"
 )
 
 func TestRead(t *testing.T) {
@@ -35,7 +37,7 @@ func TestRead(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.expr, func(t *testing.T) {
-			s := NewScanner(strings.NewReader(tc.expr))
+			s := scan.New(strings.NewReader(tc.expr))
 
 			got, err := Read(s)
 			if err != nil {
@@ -59,7 +61,7 @@ func TestReadMultiple(t *testing.T) {
 		&AtomExpr{Name: "c"},
 	}
 
-	s := NewScanner(strings.NewReader(src))
+	s := scan.New(strings.NewReader(src))
 	got, err := readAll(s)
 	if err != nil {
 		t.Fatalf("test failed due to read error: %s", err)
@@ -70,7 +72,7 @@ func TestReadMultiple(t *testing.T) {
 	}
 }
 
-func readAll(s *Scanner) ([]Node, error) {
+func readAll(s *scan.Scanner) ([]Node, error) {
 	var nodes []Node
 	for {
 		node, err := Read(s)
@@ -94,7 +96,7 @@ func TestReadError(t *testing.T) {
 		{"(", "premature EOF"},
 	}
 	for _, tc := range testCases {
-		s := NewScanner(strings.NewReader(tc.expr))
+		s := scan.New(strings.NewReader(tc.expr))
 		_, err := Read(s)
 		if err == nil {
 			t.Fatalf("no error, expected: %s", err)

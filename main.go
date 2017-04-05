@@ -5,13 +5,15 @@ import (
 	"io"
 	"log"
 	"os"
+
+	"github.com/danielwhite/microlisp/scan"
 )
 
 func main() {
 	log.SetFlags(0)
 
-	s := NewScanner(os.Stdin)
-	s.Error = func(s *Scanner, msg string) { log.Fatal(msg) }
+	s := scan.New(os.Stdin)
+	s.Error = func(s *scan.Scanner, msg string) { log.Fatal(msg) }
 	for {
 		// Read the next expression from the input.
 		node, err := Read(s)

@@ -7,6 +7,8 @@ import (
 	"log"
 	"strings"
 	"testing"
+
+	"github.com/danielwhite/microlisp/scan"
 )
 
 var src = readFile("testdata/eval.lisp")
@@ -14,7 +16,7 @@ var src = readFile("testdata/eval.lisp")
 func BenchmarkParse(b *testing.B) {
 	b.SetBytes(int64(len(src)))
 	for i := 0; i < b.N; i++ {
-		s := NewScanner(bytes.NewReader(src))
+		s := scan.New(bytes.NewReader(src))
 		if _, err := Read(s); err != nil {
 			b.Fatalf("benchmark failed due to parse error: %s", err)
 		}
@@ -22,7 +24,7 @@ func BenchmarkParse(b *testing.B) {
 }
 
 func BenchmarkFprint(b *testing.B) {
-	s := NewScanner(bytes.NewReader(src))
+	s := scan.New(bytes.NewReader(src))
 	node, err := Read(s)
 	if err != nil {
 		b.Fatalf("benchmark failed due to parse error: %s", err)
@@ -41,7 +43,7 @@ func BenchmarkFprint(b *testing.B) {
 }
 
 func BenchmarkEval(b *testing.B) {
-	s := NewScanner(bytes.NewReader(src))
+	s := scan.New(bytes.NewReader(src))
 	node, err := Read(s)
 	if err != nil {
 		b.Fatalf("benchmark failed due to parse error: %s", err)
@@ -66,7 +68,7 @@ func BenchmarkInvoke(b *testing.B) {
 
 	for _, tc := range testCases {
 		b.Run(tc.name, func(b *testing.B) {
-			s := NewScanner(strings.NewReader(fmt.Sprintf("(%s %s)", tc.name, tc.args)))
+			s := scan.New(strings.NewReader(fmt.Sprintf("(%s %s)", tc.name, tc.args)))
 			node, err := Read(s)
 			if err != nil {
 				b.Fatalf("benchmark failed due to parse error: %s", err)

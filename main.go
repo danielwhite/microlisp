@@ -3,35 +3,37 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"io"
 	"log"
 	"os"
 
+	"github.com/danielwhite/microlisp/read"
+	"github.com/danielwhite/microlisp/run"
 	"github.com/danielwhite/microlisp/scan"
+	"github.com/danielwhite/microlisp/value"
 )
 
 func main() {
 	log.SetFlags(0)
 
-	s := scan.New(bufio.NewReader(os.Stdin))
+	scanner := scan.New(bufio.NewReader(os.Stdin))
+	reader := read.New(scanner)
 	for {
 		// Read the next expression from the input.
-		node, err := Read(s)
-		if err == io.EOF {
+		v := reader.Read()
+		if v == value.EOF {
 			log.Print("end of input stream reached")
 			break
-		} else if err != nil {
+		}
+
+		if err, ok := v.(value.Error); ok {
 			log.Fatal(err)
 		}
 
 		// Evaluate the expression.
-		result, err := Eval(node)
-		if err != nil {
-			log.Print(err)
-		}
+		result := run.Eval(v)
 
 		// Print the result.
-		Fprint(os.Stdout, result)
+		result.Write(os.Stdout)
 		fmt.Println()
 	}
 }

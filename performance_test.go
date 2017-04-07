@@ -8,7 +8,10 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/danielwhite/microlisp/read"
+	"github.com/danielwhite/microlisp/run"
 	"github.com/danielwhite/microlisp/scan"
+	"github.com/danielwhite/microlisp/value"
 )
 
 var src = readFile("testdata/eval.lisp")
@@ -16,41 +19,45 @@ var src = readFile("testdata/eval.lisp")
 func BenchmarkParse(b *testing.B) {
 	b.SetBytes(int64(len(src)))
 	for i := 0; i < b.N; i++ {
-		s := scan.New(bytes.NewReader(src))
-		if _, err := Read(s); err != nil {
+		scanner := scan.New(bytes.NewReader(src))
+		reader := read.New(scanner)
+		v := reader.Read()
+		if err, ok := v.(value.Error); ok {
 			b.Fatalf("benchmark failed due to parse error: %s", err)
 		}
 	}
 }
 
 func BenchmarkFprint(b *testing.B) {
-	s := scan.New(bytes.NewReader(src))
-	node, err := Read(s)
-	if err != nil {
+	scanner := scan.New(bytes.NewReader(src))
+	reader := read.New(scanner)
+	v := reader.Read()
+	if err, ok := v.(value.Error); ok {
 		b.Fatalf("benchmark failed due to parse error: %s", err)
 	}
 
 	// Initial print to allocate underlying buffer.
 	var buf bytes.Buffer
-	Fprint(&buf, node)
+	v.Write(&buf)
 	b.SetBytes(int64(buf.Len()))
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
 		buf.Reset()
-		Fprint(&buf, node)
+		v.Write(&buf)
 	}
 }
 
 func BenchmarkEval(b *testing.B) {
-	s := scan.New(bytes.NewReader(src))
-	node, err := Read(s)
-	if err != nil {
+	scanner := scan.New(bytes.NewReader(src))
+	reader := read.New(scanner)
+	v := reader.Read()
+	if err, ok := v.(value.Error); ok {
 		b.Fatalf("benchmark failed due to parse error: %s", err)
 	}
 
 	for i := 0; i < b.N; i++ {
-		Eval(node)
+		run.Eval(v)
 	}
 }
 
@@ -68,14 +75,18 @@ func BenchmarkInvoke(b *testing.B) {
 
 	for _, tc := range testCases {
 		b.Run(tc.name, func(b *testing.B) {
-			s := scan.New(strings.NewReader(fmt.Sprintf("(%s %s)", tc.name, tc.args)))
-			node, err := Read(s)
-			if err != nil {
+			src := fmt.Sprintf("(%s %s)", tc.name, tc.args)
+			scanner := scan.New(strings.NewReader(src))
+			reader := read.New(scanner)
+			v := reader.Read()
+			if err, ok := v.(value.Error); ok {
 				b.Fatalf("benchmark failed due to parse error: %s", err)
 			}
 
 			for i := 0; i < b.N; i++ {
-				Eval(node)
+				if _, err := unwrapEval(v); err != nil {
+					b.Fatalf("benchmark failed due to eval error: %s", err)
+				}
 			}
 		})
 	}
@@ -87,4 +98,12 @@ func readFile(name string) []byte {
 		log.Fatal(err)
 	}
 	return b
+}
+
+func unwrapEval(expr value.Value) (value.Value, error) {
+	v := run.Eval(expr)
+	if err, ok := v.(value.Error); ok {
+		return nil, err
+	}
+	return v, nil
 }

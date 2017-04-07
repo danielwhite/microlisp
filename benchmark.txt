@@ -1,10 +1,10 @@
-BenchmarkParse-4    	   10000	    151058 ns/op	  27.43 MB/s	   35104 B/op	    1659 allocs/op
-BenchmarkFprint-4   	  100000	     15985 ns/op	  99.15 MB/s	    4576 B/op	       6 allocs/op
-BenchmarkEval-4     	 2000000	       875 ns/op	      96 B/op	       5 allocs/op
-BenchmarkInvoke/list-4         	 2000000	       615 ns/op	     208 B/op	       6 allocs/op
-BenchmarkInvoke/car-4          	10000000	       232 ns/op	      16 B/op	       1 allocs/op
-BenchmarkInvoke/cdr-4          	 5000000	       239 ns/op	      16 B/op	       1 allocs/op
-BenchmarkInvoke/cons-4         	 3000000	       419 ns/op	      80 B/op	       3 allocs/op
-BenchmarkInvoke/equal-4        	 3000000	       458 ns/op	      48 B/op	       2 allocs/op
+BenchmarkParse-4    	   10000	    147951 ns/op	  28.01 MB/s	   30880 B/op	    1656 allocs/op
+BenchmarkFprint-4   	  100000	     17160 ns/op	  92.36 MB/s	    4576 B/op	       6 allocs/op
+BenchmarkEval-4     	 2000000	       851 ns/op	      96 B/op	       5 allocs/op
+BenchmarkInvoke/list-4         	 2000000	       623 ns/op	     208 B/op	       6 allocs/op
+BenchmarkInvoke/car-4          	10000000	       202 ns/op	      16 B/op	       1 allocs/op
+BenchmarkInvoke/cdr-4          	10000000	       199 ns/op	      16 B/op	       1 allocs/op
+BenchmarkInvoke/cons-4         	 5000000	       393 ns/op	      80 B/op	       3 allocs/op
+BenchmarkInvoke/equal-4        	 3000000	       431 ns/op	      48 B/op	       2 allocs/op
 PASS
-ok  	github.com/danielwhite/microlisp	15.379s
+ok  	github.com/danielwhite/microlisp	16.380s

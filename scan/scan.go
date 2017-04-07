@@ -3,10 +3,8 @@
 package scan
 
 import (
-	"bufio"
 	"fmt"
 	"io"
-	"os"
 	"unicode"
 )
 
@@ -14,12 +12,13 @@ import (
 type Type int
 
 const (
-	ILLEGAL Type = iota
+	Illegal Type = iota
+	Error
 	EOF
 
-	ATOM
-	LPAREN
-	RPAREN
+	Atom
+	LeftParen
+	RightParen
 )
 
 // Token represents a token or literal
@@ -30,82 +29,71 @@ type Token struct {
 
 func (t Token) String() string {
 	switch t.Type {
-	case ATOM:
+	case Error:
+		return fmt.Sprintf("error: %s", t.Text)
+	case Atom:
 		return fmt.Sprintf("%s: %q", t.Type, t.Text)
 	}
 	return t.Type.String()
 }
 
-// eofRune is a marker used to indicate that EOF has been reached.
-const eofRune = -1
-
-// A Scanner implements reading of Lisp data from an io.Reader.
+// Scanner holds state of Lisp tokens.
 type Scanner struct {
-	Error func(s *Scanner, msg string)
-
-	r  *bufio.Reader
-	ch rune
+	r   io.RuneReader // The reader provided by the client.
+	ch  rune          // Last character read.
+	err error         // Sticky error.
 }
 
-func (s *Scanner) error(msg string) {
-	if s.Error != nil {
-		s.Error(s, msg)
-	} else {
-		fmt.Fprintf(os.Stderr, "scanner: %s\n", msg)
+// marker used to indicate that EOF has been reached
+const eof = -1
+
+func (s *Scanner) readChar() {
+	s.ch, _, s.err = s.r.ReadRune()
+	if s.err != nil {
+		s.ch = eof
 	}
 }
 
-func (s *Scanner) next() {
-	r, _, err := s.r.ReadRune()
-	switch {
-	case err == io.EOF:
-		s.ch = eofRune
-	case err != nil:
-		s.error(err.Error())
-	default:
-		s.ch = r
+func (s *Scanner) lexAtom() Token {
+	var text []rune
+	for s.ch != eof && s.ch != '(' && s.ch != ')' && !unicode.IsSpace(s.ch) {
+		text = append(text, s.ch)
+		s.readChar()
 	}
-}
-
-func (s *Scanner) skipWhitespace() {
-	for s.ch != eofRune && unicode.IsSpace(s.ch) {
-		s.next()
-	}
-}
-
-func (s *Scanner) scanAtom() string {
-	var runes []rune
-	for s.ch != eofRune && s.ch != '(' && s.ch != ')' && !unicode.IsSpace(s.ch) {
-		runes = append(runes, s.ch)
-		s.next()
-	}
-	return string(runes)
+	return Token{Type: Atom, Text: string(text)}
 }
 
 // New initialises a scanner for tokenizing Lisp data from a reader.
-func New(r io.Reader) *Scanner {
-	s := &Scanner{r: bufio.NewReader(r)}
-	s.next()
-	return s
+func New(r io.RuneReader) *Scanner {
+	return &Scanner{
+		r:  r,
+		ch: ' ', // start with whitespace that is dropped
+	}
 }
 
-// Next reads the next token from the underlying reader. When the
-// token is an ATOM, a literal value is also returned.
+// Next reads the next token from the underlying reader.
 //
-// In the event of an error, then the Error function will be called if
-// it is not nil. Otherwise, an error message is written to Stderr.
+// If an error is encountered, an error token will be returned with a
+// message as its text.
 func (s *Scanner) Next() Token {
-	s.skipWhitespace()
+	// All whitespace is ignored.
+	for unicode.IsSpace(s.ch) {
+		s.readChar()
+	}
+
 	switch s.ch {
-	case eofRune:
-		return Token{Type: EOF}
 	case '(':
-		s.next()
-		return Token{Type: LPAREN}
+		s.readChar()
+		return Token{Type: LeftParen}
 	case ')':
-		s.next()
-		return Token{Type: RPAREN}
+		s.readChar()
+		return Token{Type: RightParen}
+	case eof:
+		if s.err == io.EOF {
+			return Token{Type: EOF}
+		}
+		return Token{Type: Error, Text: s.err.Error()}
 	default:
-		return Token{Type: ATOM, Text: s.scanAtom()}
+		return s.lexAtom()
 	}
 }

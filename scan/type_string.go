@@ -4,9 +4,9 @@ package scan
 
 import "fmt"
 
-const _Type_name = "ILLEGALEOFATOMLPARENRPAREN"
+const _Type_name = "IllegalErrorEOFAtomLeftParenRightParen"
 
-var _Type_index = [...]uint8{0, 7, 10, 14, 20, 26}
+var _Type_index = [...]uint8{0, 7, 12, 15, 19, 28, 38}
 
 func (i Type) String() string {
 	if i < 0 || i >= Type(len(_Type_index)-1) {

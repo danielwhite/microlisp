@@ -11,30 +11,32 @@ func TestReader(t *testing.T) {
 		expr string
 		want []Token
 	}{
-		{`()`, []Token{{LPAREN, ""}, {RPAREN, ""}}},
-		{`atom`, []Token{{ATOM, "atom"}}},
+		{`()`, []Token{{LeftParen, ""}, {RightParen, ""}}},
+		{`atom`, []Token{{Atom, "atom"}}},
 		{`(foo bar baz)`, []Token{
-			{LPAREN, ""},
-			{ATOM, "foo"},
-			{ATOM, "bar"},
-			{ATOM, "baz"},
-			{RPAREN, ""},
+			{LeftParen, ""},
+			{Atom, "foo"},
+			{Atom, "bar"},
+			{Atom, "baz"},
+			{RightParen, ""},
 		}},
 		{`(((a)b)c)`, []Token{
-			{LPAREN, ""},
-			{LPAREN, ""},
-			{LPAREN, ""},
-			{ATOM, "a"},
-			{RPAREN, ""},
-			{ATOM, "b"},
-			{RPAREN, ""},
-			{ATOM, "c"},
-			{RPAREN, ""},
+			{LeftParen, ""},
+			{LeftParen, ""},
+			{LeftParen, ""},
+			{Atom, "a"},
+			{RightParen, ""},
+			{Atom, "b"},
+			{RightParen, ""},
+			{Atom, "c"},
+			{RightParen, ""},
 		}},
 	}
 	for _, tc := range testCases {
 		t.Run(tc.expr, func(t *testing.T) {
-			got := scanAll(New(strings.NewReader(tc.expr)))
+			scanner := New(strings.NewReader(tc.expr))
+
+			got := scanAll(scanner)
 			if !reflect.DeepEqual(tc.want, got) {
 				t.Fatalf("want: %v, got: %v", tc.want, got)
 			}

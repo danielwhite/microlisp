@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"io"
 	"log"
@@ -12,8 +13,7 @@ import (
 func main() {
 	log.SetFlags(0)
 
-	s := scan.New(os.Stdin)
-	s.Error = func(s *scan.Scanner, msg string) { log.Fatal(msg) }
+	s := scan.New(bufio.NewReader(os.Stdin))
 	for {
 		// Read the next expression from the input.
 		node, err := Read(s)

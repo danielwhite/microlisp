@@ -13,13 +13,15 @@ import (
 func Read(s *scan.Scanner) (node Node, err error) {
 	tok := s.Next()
 	switch tok.Type {
-	case scan.ILLEGAL:
+	case scan.Illegal:
 		err = errors.New("illegal token")
-	case scan.ATOM:
+	case scan.Error:
+		err = errors.New(tok.Text)
+	case scan.Atom:
 		node = &AtomExpr{Name: tok.Text}
-	case scan.LPAREN:
+	case scan.LeftParen:
 		node, err = readList(s)
-	case scan.RPAREN:
+	case scan.RightParen:
 		err = errors.New("unbalanced closed parenthesis")
 	case scan.EOF:
 		err = io.EOF
@@ -34,14 +36,14 @@ func readList(s *scan.Scanner) (node Node, err error) {
 	switch tok.Type {
 	case scan.EOF:
 		err = errors.New("premature EOF")
-	case scan.ATOM:
+	case scan.Atom:
 		var cdr Node
 		cdr, err = readList(s)
 		if err != nil {
 			break
 		}
 		node = &ListExpr{&AtomExpr{Name: tok.Text}, cdr}
-	case scan.LPAREN:
+	case scan.LeftParen:
 		var car, cdr Node
 		car, err = readList(s)
 		if err != nil {
@@ -52,7 +54,7 @@ func readList(s *scan.Scanner) (node Node, err error) {
 			break
 		}
 		node = &ListExpr{car, cdr}
-	case scan.RPAREN:
+	case scan.RightParen:
 		node = NIL
 	default:
 		err = fmt.Errorf("unexpected token in list: %s", tok)

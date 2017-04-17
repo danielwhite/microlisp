@@ -41,9 +41,9 @@ func cons(a value.Value, b value.Value) value.Value {
 	}
 }
 
-func list(args value.List) value.Value {
+func list(args []value.Value) value.Value {
 	if len(args) == 0 {
 		return value.NIL
 	}
-	return append(args, value.NIL)
+	return value.List(append(args, value.NIL))
 }

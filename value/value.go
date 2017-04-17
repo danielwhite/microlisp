@@ -14,6 +14,7 @@ var (
 
 type Environment interface {
 	Lookup(name string) (Value, bool)
+	Extend(map[string]Value) Environment
 }
 
 // Value is a runtime representation of Lisp data.
@@ -103,12 +104,14 @@ func (v List) Eval(env Environment) Value {
 			return evalQuote(env, v)
 		case "cond":
 			return evalCond(env, v)
+		case "lambda":
+			return makeFunction(env, v)
 		}
 	}
 
 	fn := v[0].Eval(env)
 	args := v[1:].evalList(env)
-	return invoke(env, fn, args)
+	return invoke(fn, args)
 }
 
 func (v List) Equal(cmp Value) Value {
@@ -167,4 +170,52 @@ func evalCond(env Environment, expr List) Value {
 	}
 
 	return NIL
+}
+
+// makeFunction creates a new function from the lambda special form.
+func makeFunction(env Environment, expr List) Function {
+	if len(expr) < 4 {
+		Panicf("ill-formed special form: %s", expr)
+	}
+
+	f := &lambdaFunc{}
+
+	if v, ok := expr[1].(List); ok {
+		// Each item in the list of arguments must be an atom.
+		f.args = make([]string, len(v)-1)
+		for i, arg := range v[:len(v)-1] {
+			atom, ok := arg.(*Atom)
+			if !ok {
+				break
+			}
+			f.args[i] = atom.Name
+		}
+	} else if expr[1] == NIL {
+		// FIXME: This special case is currently necessary
+		// because we don't represent lists as cons cells.
+		//
+		// The only valid case is NIL in which case we have an
+		// empty list of args.
+		f.args = []string{}
+	} else {
+		Panicf("ill-formed special form: %s", expr)
+	}
+
+	body := expr[2:]
+	f.fn = func(args []Value) Value {
+		if len(args) != len(f.args) {
+			Panicf("%s called with %d arguments, but requires %d",
+				f, len(args), len(f.args))
+		}
+
+		argMap := make(map[string]Value)
+		for i, arg := range f.args {
+			argMap[arg] = args[i]
+		}
+
+		results := body.evalList(env.Extend(argMap))
+		return results[len(results)-1]
+	}
+
+	return f
 }

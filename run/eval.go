@@ -4,7 +4,7 @@ import (
 	"github.com/danielwhite/microlisp/value"
 )
 
-var DefaultEnvironment = mapEnv{
+var DefaultEnvironment = value.NewEnv(map[string]value.Value{
 	"t":     value.T,
 	"nil":   value.NIL,
 	"atom":  value.Func1(atom),
@@ -13,7 +13,7 @@ var DefaultEnvironment = mapEnv{
 	"cdr":   value.Func1(cdr),
 	"cons":  value.Func2(cons),
 	"list":  value.FuncN(list),
-}
+})
 
 // Eval applies rules to an expression, and returns an expression that
 // is the value.
@@ -25,12 +25,4 @@ func Eval(expr value.Value) (v value.Value) {
 	}()
 	v = expr.Eval(DefaultEnvironment)
 	return
-}
-
-type mapEnv map[string]value.Value
-
-// Lookup implements the value.Environment interface.
-func (e mapEnv) Lookup(name string) (value.Value, bool) {
-	v, ok := e[name]
-	return v, ok
 }

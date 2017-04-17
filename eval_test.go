@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -10,10 +11,20 @@ import (
 	"github.com/danielwhite/microlisp/scan"
 )
 
+type Matcher interface {
+	MatchString(string) bool
+}
+
+type stringMatcher string
+
+func (m stringMatcher) MatchString(s string) bool {
+	return string(m) == s
+}
+
 func TestEval(t *testing.T) {
 	testCases := []struct {
-		expr string // expression to evalute
-		want string // value of the expression
+		expr string      // expression to evalute
+		want interface{} // value of the expression; string or Matcher
 	}{
 		{"t", "t"},
 		{"nil", "nil"},
@@ -57,9 +68,34 @@ func TestEval(t *testing.T) {
 
 		{"(cond ((atom (quote a)) (quote b)) ((quote t) (quote c)))", "b"},
 		{"(cond ((atom car) (quote b)) ((quote t) (quote c)))", "c"},
+
+		{"((lambda () (quote a)))", "a"},
+		{"((lambda (a) a) b)", "b"},
+		{"((lambda (x y) (cons (car x) y)) (quote (a b)) (cdr (quote (c d))))",
+			"(a d)"},
+
+		// Ensure inner Lambda access extended environment.
+		{"(((lambda (x) (lambda (y) (cons x y))) a) b)", "(a . b)"},
+		// Ensure body evaluation is equivalent to `progn`.
+		{"((lambda (x) a x c) c)", "c"},
+
+		{"(lambda)", "#[error: ill-formed special form: (lambda)]"},
+		{"(lambda ())", "#[error: ill-formed special form: (lambda nil)]"},
+		{"((lambda (x) x) 1 2)", regexp.MustCompile(`#\[error: #\[lambda .* \[x\]\] called with 2 arguments, but requires 1\]`)},
 	}
 	for _, tc := range testCases {
 		t.Run(tc.expr, func(t *testing.T) {
+			// Ensure that test case provides a matcher.
+			var matcher Matcher
+			switch v := tc.want.(type) {
+			case string:
+				matcher = stringMatcher(v)
+			case Matcher:
+				matcher = v
+			default:
+				t.Fatalf("test requires a matcher, got %#v", tc.want)
+			}
+
 			// Read and evaluate an expression.
 			scanner := scan.New(strings.NewReader(tc.expr))
 			reader := read.New(scanner)
@@ -71,7 +107,7 @@ func TestEval(t *testing.T) {
 			value.Write(&buf)
 			got := buf.String()
 
-			if tc.want != got {
+			if !matcher.MatchString(got) {
 				t.Errorf("want %q, got %q", tc.want, got)
 			}
 		})

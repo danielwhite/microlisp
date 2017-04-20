@@ -102,6 +102,8 @@ func (v List) Eval(env Environment) Value {
 			return evalCond(env, v)
 		case "lambda":
 			return makeFunction(env, v)
+		case "label":
+			return evalLabel(env, v)
 		}
 	}
 
@@ -166,6 +168,34 @@ func evalCond(env Environment, expr List) Value {
 	}
 
 	return NIL
+}
+
+// evalLabel evaluates the label special form.
+func evalLabel(env Environment, expr List) Value {
+	if len(expr) != 4 {
+		Panicf("ill-formed special form: %s", expr)
+	}
+
+	label, ok := expr[1].(*Atom)
+	if !ok {
+		Panicf("ill-formed special form: %s", expr)
+	}
+
+	lambda, ok := expr[2].(List)
+	if !ok {
+		Panicf("ill-formed special form: %s", expr)
+	}
+
+	// Evaluate lambda in an environment where it is able to
+	// reference the name defined by the label special form.
+	extEnv := NewEnv(env)
+	extEnv.Define(label.Name, unassigned)
+	fn := makeFunction(extEnv, lambda)
+
+	// Update the binding to the newly created function.
+	extEnv.Update(label.Name, fn)
+
+	return fn
 }
 
 // makeFunction creates a new function from the lambda special form.

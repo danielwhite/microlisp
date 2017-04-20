@@ -82,6 +82,12 @@ func TestEval(t *testing.T) {
 		{"(lambda)", "#[error: ill-formed special form: (lambda)]"},
 		{"(lambda ())", "#[error: ill-formed special form: (lambda nil)]"},
 		{"((lambda (x) x) 1 2)", regexp.MustCompile(`#\[error: #\[lambda .* \[x\]\] called with 2 arguments, but requires 1\]`)},
+
+		{`((label ff (lambda (x)
+                               (cond ((atom x) x)
+                                     ((quote t) (ff (car x))))))
+                   (quote ((a b) c)))`,
+			"a"},
 	}
 	for _, tc := range testCases {
 		t.Run(tc.expr, func(t *testing.T) {

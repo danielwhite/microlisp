@@ -7,15 +7,11 @@ import (
 var internedSymbols = map[string]*Atom{}
 
 var (
-	EOF = Error("EOF")
-	NIL = Intern("nil")
-	T   = Intern("t")
+	EOF        = Error("EOF")
+	NIL        = Intern("nil")
+	T          = Intern("t")
+	unassigned = &Atom{Name: "#[unassigned]"} // uninterned symbol
 )
-
-type Environment interface {
-	Lookup(name string) (Value, bool)
-	Extend(map[string]Value) Environment
-}
 
 // Value is a runtime representation of Lisp data.
 type Value interface {
@@ -208,12 +204,13 @@ func makeFunction(env Environment, expr List) Function {
 				f, len(args), len(f.args))
 		}
 
-		argMap := make(map[string]Value)
+		// Arguments are bound in a new environment.
+		extEnv := NewEnv(env)
 		for i, arg := range f.args {
-			argMap[arg] = args[i]
+			extEnv.Define(arg, args[i])
 		}
 
-		results := body.evalList(env.Extend(argMap))
+		results := body.evalList(extEnv)
 		return results[len(results)-1]
 	}
 

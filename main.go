@@ -1,39 +1,30 @@
 package main
 
 import (
-	"bufio"
-	"fmt"
+	"flag"
 	"log"
 	"os"
 
-	"github.com/danielwhite/microlisp/read"
 	"github.com/danielwhite/microlisp/run"
-	"github.com/danielwhite/microlisp/scan"
-	"github.com/danielwhite/microlisp/value"
+)
+
+var (
+	loadFlag = flag.String("load", "", "Load a file as if in the REPL")
 )
 
 func main() {
+	flag.Parse()
 	log.SetFlags(0)
 
-	scanner := scan.New(bufio.NewReader(os.Stdin))
-	reader := read.New(scanner)
-	for {
-		// Read the next expression from the input.
-		v := reader.Read()
-		if v == value.EOF {
-			log.Print("end of input stream reached")
-			break
+	// If a file is specified, load before proceeding.
+	if *loadFlag != "" {
+		if err := run.Load(*loadFlag); err != nil {
+			// Typical interpreter behaviour is to allow
+			// for recovery in the event of a load error.
+			log.Printf("Unable to load file %q: %s", *loadFlag, err)
 		}
-
-		if err, ok := v.(value.Error); ok {
-			log.Fatal(err)
-		}
-
-		// Evaluate the expression.
-		result := run.Eval(v)
-
-		// Print the result.
-		result.Write(os.Stdout)
-		fmt.Println()
 	}
+
+	// Enter the interactive REPL.
+	run.Run(os.Stdin, os.Stdout)
 }

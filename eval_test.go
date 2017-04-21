@@ -9,6 +9,7 @@ import (
 	"github.com/danielwhite/microlisp/read"
 	"github.com/danielwhite/microlisp/run"
 	"github.com/danielwhite/microlisp/scan"
+	"github.com/danielwhite/microlisp/value"
 )
 
 type Matcher interface {
@@ -88,6 +89,12 @@ func TestEval(t *testing.T) {
                                      ((quote t) (ff (car x))))))
                    (quote ((a b) c)))`,
 			"a"},
+
+		{`(defun ff (x)
+                    (cond ((atom x) x)
+                          ((quote t) (ff (car x)))))
+                  (ff (quote ((a b) c)))`,
+			"ff a"},
 	}
 	for _, tc := range testCases {
 		t.Run(tc.expr, func(t *testing.T) {
@@ -102,17 +109,27 @@ func TestEval(t *testing.T) {
 				t.Fatalf("test requires a matcher, got %#v", tc.want)
 			}
 
-			// Read and evaluate an expression.
+			// Read, eval, and print until done.
 			scanner := scan.New(strings.NewReader(tc.expr))
 			reader := read.New(scanner)
-			expr := reader.Read()
-			value := run.Eval(expr)
-
-			// Print result of expression.
 			var buf bytes.Buffer
-			value.Write(&buf)
-			got := buf.String()
+			for {
+				expr := reader.Read()
+				if expr == value.EOF {
+					break
+				}
 
+				v := run.Eval(expr)
+				v.Write(&buf)
+				buf.WriteByte(' ')
+
+				if _, ok := v.(value.Error); ok {
+					break
+				}
+			}
+			buf.Truncate(buf.Len() - 1) // remove trailing ' '
+
+			got := buf.String()
 			if !matcher.MatchString(got) {
 				t.Errorf("want %q, got %q", tc.want, got)
 			}

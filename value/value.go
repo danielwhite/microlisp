@@ -104,6 +104,8 @@ func (v List) Eval(env Environment) Value {
 			return makeFunction(env, v)
 		case "label":
 			return evalLabel(env, v)
+		case "defun":
+			return evalDefun(env, v)
 		}
 	}
 
@@ -196,6 +198,28 @@ func evalLabel(env Environment, expr List) Value {
 	extEnv.Update(label.Name, fn)
 
 	return fn
+}
+
+// evalDefun defines a function permanently.
+func evalDefun(env Environment, expr List) *Atom {
+	if len(expr) != 5 {
+		Panicf("ill-formed special form: %s", expr)
+	}
+
+	symbol, ok := expr[1].(*Atom)
+	if !ok {
+		Panicf("ill-formed special form: %s", expr)
+	}
+
+	// By defining in the current environment, we add a permanent
+	// function, but don't need to find the toplevel. I think this
+	// differs from a typical Lisp, but falls within McCarthy's
+	// described behaviour.
+	env.Define(symbol.Name, unassigned)
+	fn := makeFunction(env, append(List{&Atom{Name: "lambda"}}, expr[2:]...))
+	env.Update(symbol.Name, fn)
+
+	return symbol
 }
 
 // makeFunction creates a new function from the lambda special form.

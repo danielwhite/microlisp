@@ -8,6 +8,14 @@ func atom(arg Value) Value {
 	return NIL
 }
 
+// null returns T if the value is NIL
+func null(v Value) Value {
+	if v == NIL {
+		return T
+	}
+	return NIL
+}
+
 func equal(a Value, b Value) Value {
 	return a.Equal(b)
 }

@@ -20,6 +20,7 @@ var DefaultEnvironment = &env{
 		"t":     T,
 		"nil":   NIL,
 		"atom":  Func1(atom),
+		"null":  Func1(null),
 		"eq":    equalFn, // alias
 		"equal": equalFn,
 		"car":   Func1(car),

@@ -6,10 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/danielwhite/microlisp/read"
 	"github.com/danielwhite/microlisp/run"
-	"github.com/danielwhite/microlisp/scan"
-	"github.com/danielwhite/microlisp/value"
 )
 
 type Matcher interface {
@@ -94,7 +91,7 @@ func TestEval(t *testing.T) {
                     (cond ((atom x) x)
                           ((quote t) (ff (car x)))))
                   (ff (quote ((a b) c)))`,
-			"ff a"},
+			"ff\na"},
 	}
 	for _, tc := range testCases {
 		t.Run(tc.expr, func(t *testing.T) {
@@ -110,24 +107,12 @@ func TestEval(t *testing.T) {
 			}
 
 			// Read, eval, and print until done.
-			scanner := scan.New(strings.NewReader(tc.expr))
-			reader := read.New(scanner)
+			r := strings.NewReader(tc.expr)
 			var buf bytes.Buffer
-			for {
-				expr := reader.Read()
-				if expr == value.EOF {
-					break
-				}
+			run.Run(r, &buf)
 
-				v := run.Eval(expr)
-				v.Write(&buf)
-				buf.WriteByte(' ')
-
-				if _, ok := v.(value.Error); ok {
-					break
-				}
-			}
-			buf.Truncate(buf.Len() - 1) // remove trailing ' '
+			// Drop trailing newline to simplify test cases.
+			buf.Truncate(buf.Len() - 1)
 
 			got := buf.String()
 			if !matcher.MatchString(got) {

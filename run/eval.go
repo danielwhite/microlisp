@@ -44,7 +44,7 @@ func Run(r io.Reader, w io.Writer) error {
 
 		// Print the result.
 		result.Write(w)
-		fmt.Println()
+		fmt.Fprintln(w)
 	}
 }
 

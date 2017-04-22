@@ -16,6 +16,8 @@ const (
 	Error
 	EOF
 
+	Comment
+
 	Atom
 	LeftParen
 	RightParen
@@ -31,7 +33,7 @@ func (t Token) String() string {
 	switch t.Type {
 	case Error:
 		return fmt.Sprintf("error: %s", t.Text)
-	case Atom:
+	case Atom, Comment:
 		return fmt.Sprintf("%s: %q", t.Type, t.Text)
 	}
 	return t.Type.String()
@@ -63,6 +65,15 @@ func (s *Scanner) lexAtom() Token {
 	return Token{Type: Atom, Text: string(text)}
 }
 
+func (s *Scanner) lexComment() Token {
+	var text []rune
+	for s.ch != '\n' && s.ch != eof {
+		text = append(text, s.ch)
+		s.readChar()
+	}
+	return Token{Type: Comment, Text: string(text)}
+}
+
 // New initialises a scanner for tokenizing Lisp data from a reader.
 func New(r io.RuneReader) *Scanner {
 	return &Scanner{
@@ -88,6 +99,8 @@ func (s *Scanner) Next() Token {
 	case ')':
 		s.readChar()
 		return Token{Type: RightParen}
+	case ';':
+		return s.lexComment()
 	case eof:
 		if s.err == io.EOF {
 			return Token{Type: EOF}

@@ -36,6 +36,8 @@ func (r *Reader) readList() (value.Value, error) {
 			return nil, errEOF
 		case scan.Error:
 			return nil, errors.New(tok.Text)
+		case scan.Comment:
+			// comments are ignored
 		default:
 			return nil, fmt.Errorf("unexpected token in list: %s", tok)
 		}
@@ -50,6 +52,7 @@ func New(s *scan.Scanner) *Reader {
 // Read parses the next expression from a stream of tokens. When the
 // end of the stream is reached, then value.EOF.
 func (r *Reader) Read() value.Value {
+Next:
 	switch tok := r.scanner.Next(); tok.Type {
 	case scan.Atom:
 		return value.Intern(tok.Text)
@@ -65,6 +68,9 @@ func (r *Reader) Read() value.Value {
 		return value.EOF
 	case scan.Error:
 		return value.Error(tok.Text)
+	case scan.Comment:
+		// comments are ignored, so scan again
+		goto Next
 	default:
 		return value.Error(fmt.Sprintf("unsupported token: %s", tok))
 	}

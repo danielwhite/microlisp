@@ -31,6 +31,18 @@ func TestReader(t *testing.T) {
 			{Atom, "c"},
 			{RightParen, ""},
 		}},
+		{`(list ;; comment
+                    ;; some values
+                    a
+                    b)`, []Token{
+			{LeftParen, ""},
+			{Atom, "list"},
+			{Comment, ";; comment"},
+			{Comment, ";; some values"},
+			{Atom, "a"},
+			{Atom, "b"},
+			{RightParen, ""},
+		}},
 	}
 	for _, tc := range testCases {
 		t.Run(tc.expr, func(t *testing.T) {

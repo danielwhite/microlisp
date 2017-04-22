@@ -36,6 +36,14 @@ func TestRead(t *testing.T) {
 				},
 				value.NIL,
 			}},
+		{`; comments
+                  (a ; example
+                   b)`,
+			value.List{
+				&value.Atom{Name: "a"},
+				&value.Atom{Name: "b"},
+				value.NIL,
+			}},
 		{")", value.Error("unbalanced closed parenthesis")},
 		{"(", value.Error("premature EOF")},
 	}

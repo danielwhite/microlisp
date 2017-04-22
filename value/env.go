@@ -13,12 +13,15 @@ type Environment interface {
 	Update(name string, value Value) error
 }
 
+var equalFn = Func2(equal)
+
 var DefaultEnvironment = &env{
 	env: map[string]Value{
 		"t":     T,
 		"nil":   NIL,
 		"atom":  Func1(atom),
-		"equal": Func2(equal),
+		"eq":    equalFn, // alias
+		"equal": equalFn,
 		"car":   Func1(car),
 		"cdr":   Func1(cdr),
 		"cons":  Func2(cons),

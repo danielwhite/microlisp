@@ -1,3 +1,5 @@
+;;; This definition of EVAL is based on McCarthy's Micro-Lisp Manual.
+
 (defun eval (e a)
   (cond ((atom e)
          (cond ((eq e nil) nil)

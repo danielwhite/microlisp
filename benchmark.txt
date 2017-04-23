@@ -1,11 +1,11 @@
-BenchmarkParse-4    	   10000	    176185 ns/op	  23.52 MB/s	   40464 B/op	    1676 allocs/op
-BenchmarkFprint-4   	   50000	     34414 ns/op	  46.06 MB/s	       0 B/op	       0 allocs/op
-BenchmarkEval-4     	 2000000	       848 ns/op	     224 B/op	       7 allocs/op
-BenchmarkInvoke/list-4         	 3000000	       486 ns/op	     176 B/op	       3 allocs/op
-BenchmarkInvoke/car-4          	10000000	       185 ns/op	      16 B/op	       1 allocs/op
-BenchmarkInvoke/cdr-4          	10000000	       232 ns/op	      48 B/op	       2 allocs/op
-BenchmarkInvoke/cons-4         	 5000000	       363 ns/op	      96 B/op	       3 allocs/op
-BenchmarkInvoke/equal-4        	 5000000	       329 ns/op	      32 B/op	       1 allocs/op
-BenchmarkInvoke/lambda-4       	10000000	       215 ns/op	     112 B/op	       3 allocs/op
+BenchmarkParse-4    	   10000	    167512 ns/op	  19.45 MB/s	   41296 B/op	    1670 allocs/op
+BenchmarkFprint-4   	   50000	     33926 ns/op	  46.28 MB/s	       0 B/op	       0 allocs/op
+BenchmarkEval-4     	 3000000	       560 ns/op	     224 B/op	       6 allocs/op
+BenchmarkInvoke/list-4         	 3000000	       482 ns/op	     176 B/op	       3 allocs/op
+BenchmarkInvoke/car-4          	10000000	       192 ns/op	      16 B/op	       1 allocs/op
+BenchmarkInvoke/cdr-4          	10000000	       238 ns/op	      48 B/op	       2 allocs/op
+BenchmarkInvoke/cons-4         	 5000000	       353 ns/op	      96 B/op	       3 allocs/op
+BenchmarkInvoke/equal-4        	 5000000	       358 ns/op	      32 B/op	       1 allocs/op
+BenchmarkInvoke/lambda-4       	10000000	       213 ns/op	     112 B/op	       3 allocs/op
 PASS
-ok  	github.com/danielwhite/microlisp	19.508s
+ok  	whitehouse.id.au/microlisp	19.296s

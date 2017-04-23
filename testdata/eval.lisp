@@ -4,13 +4,13 @@
   (cond ((atom e)
          (cond ((eq e nil) nil)
                ((eq e t) t)
-               (t (cdr ((label assoc
-                               (lambda (e a)
-                                 (cond ((null a) nil)
-                                       ((eq e (caar a)) (car a))
-                                       (t (assoc e (cdr a))))))
-                        e
-                        a)))))
+               (t ((label assoc
+                          (lambda (e a)
+                            (cond ((null a) nil)
+                                  ((eq e (caar a)) (car a))
+                                  (t (assoc e (cdr a))))))
+                   e
+                   a))))
         ((atom (car e))
          (cond ((eq (car e) (quote quote)) (cadr e))
                ((eq (car e) (quote car))

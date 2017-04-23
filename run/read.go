@@ -3,9 +3,9 @@ package run
 import (
 	"strings"
 
-	"github.com/danielwhite/microlisp/read"
-	"github.com/danielwhite/microlisp/scan"
-	"github.com/danielwhite/microlisp/value"
+	"whitehouse.id.au/microlisp/read"
+	"whitehouse.id.au/microlisp/scan"
+	"whitehouse.id.au/microlisp/value"
 )
 
 // ReadString reads the first textual Lisp expression from the text in

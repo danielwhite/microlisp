@@ -6,10 +6,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/danielwhite/microlisp/read"
-	"github.com/danielwhite/microlisp/run"
-	"github.com/danielwhite/microlisp/scan"
-	"github.com/danielwhite/microlisp/value"
+	"whitehouse.id.au/microlisp/read"
+	"whitehouse.id.au/microlisp/run"
+	"whitehouse.id.au/microlisp/scan"
+	"whitehouse.id.au/microlisp/value"
 )
 
 func TestRead(t *testing.T) {

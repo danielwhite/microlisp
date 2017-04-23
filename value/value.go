@@ -1,3 +1,4 @@
+// Package value implements Lisp values and their evaluation.
 package value
 
 import (

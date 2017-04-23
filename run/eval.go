@@ -1,3 +1,4 @@
+// Package run provides a Lisp runtime.
 package run
 
 import (
@@ -6,9 +7,9 @@ import (
 	"io"
 	"os"
 
-	"github.com/danielwhite/microlisp/read"
-	"github.com/danielwhite/microlisp/scan"
-	"github.com/danielwhite/microlisp/value"
+	"whitehouse.id.au/microlisp/read"
+	"whitehouse.id.au/microlisp/scan"
+	"whitehouse.id.au/microlisp/value"
 )
 
 // Eval applies rules to an expression, and returns an expression that

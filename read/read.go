@@ -1,11 +1,12 @@
+// Package read implements a reader for Lisp expressions.
 package read
 
 import (
 	"errors"
 	"fmt"
 
-	"github.com/danielwhite/microlisp/scan"
-	"github.com/danielwhite/microlisp/value"
+	"whitehouse.id.au/microlisp/scan"
+	"whitehouse.id.au/microlisp/value"
 )
 
 var errEOF = errors.New("premature EOF")

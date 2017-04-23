@@ -1,5 +1,6 @@
 //go:generate stringer -type=Type
 
+// Package scan implements a scanner for Lisp source.
 package scan
 
 import (

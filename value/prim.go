@@ -58,9 +58,6 @@ func list(args []Value) Value {
 	if len(args) == 0 {
 		return NIL
 	}
-	if len(args) == 1 {
-		return Cons(args[0], NIL)
-	}
 
 	var last Value = NIL
 	for i := len(args) - 1; i >= 0; i-- {

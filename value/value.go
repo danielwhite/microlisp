@@ -61,17 +61,25 @@ func (v *Atom) Equal(x Value) Value {
 }
 
 // evalList evaluates a proper list of values.
-func evalList(env Environment, expr []Value) []Value {
-	results := make([]Value, len(expr))
-	for i, v := range expr {
-		results[i] = v.Eval(env)
+func evalList(env Environment, expr Value) []Value {
+	var results []Value
+	for next := expr; next != NIL; {
+		v, ok := next.(*Cell)
+		if !ok {
+			Panicf("cannot evaluate an improper list: %s", expr)
+		}
+
+		results = append(results, v.Car.Eval(env))
+
+		next = v.Cdr
 	}
+
 	return results
 }
 
 // evalProgn evaluates a proper list of values, returning the last
 // value.
-func evalProgn(env Environment, expr []Value) Value {
+func evalProgn(env Environment, expr Value) Value {
 	results := evalList(env, expr)
 	return results[len(results)-1]
 }
@@ -112,7 +120,7 @@ func evalCond(env Environment, expr *Cell) Value {
 			if !ok {
 				Panicf("ill-formed clause: %s", clause)
 			}
-			return evalProgn(env, body.List())
+			return evalProgn(env, body)
 		}
 	}
 	return NIL
@@ -169,28 +177,23 @@ func evalDefun(env Environment, expr *Cell) *Atom {
 func makeFunction(env Environment, expr *Cell) Function {
 	f := &lambdaFunc{}
 
-	var args []Value
+	// Gather each argument name so we can extend the environment.
+	for next := cadr(expr); next != NIL; {
+		v, ok := next.(*Cell)
+		if !ok {
+			Panicf("ill-formed special form: %s", expr)
+		}
 
-	// Extract arguments; ignoring the case of NIL.
-	argValue := cadr(expr)
-	if argValue == NIL {
-		// args are just empty
-	} else if argExpr, ok := argValue.(*Cell); ok {
-		args = argExpr.List()
-	} else {
-		Panicf("ill-formed special form: %s", expr)
-	}
-
-	// Each item in the list of arguments must be an atom.
-	f.args = make([]string, len(args))
-	for i, arg := range args {
-		atom, ok := arg.(*Atom)
+		atom, ok := v.Car.(*Atom)
 		if !ok {
 			break
 		}
-		f.args[i] = atom.Name
+		f.args = append(f.args, atom.Name)
+
+		next = v.Cdr
 	}
 
+	// Convert the body into an interpreted function.
 	bodyExpr, ok := cddr(expr).(*Cell)
 	if !ok {
 		Panicf("ill-formed special form: %s", expr)
@@ -208,7 +211,7 @@ func makeFunction(env Environment, expr *Cell) Function {
 		}
 
 		// Body is evaluated in an implicit progn.
-		return evalProgn(extEnv, bodyExpr.List())
+		return evalProgn(extEnv, bodyExpr)
 	}
 
 	return f

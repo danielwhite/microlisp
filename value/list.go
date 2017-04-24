@@ -18,27 +18,6 @@ type Cell struct {
 	Cdr Value
 }
 
-// List returns a slice of values in the list represented by a series
-// of cons cells. This expects a proper list and will panic if an
-// improper list is found.
-func (c *Cell) List() []Value {
-	var values []Value
-	for {
-		values = append(values, c.Car)
-
-		if c.Cdr == NIL {
-			break
-		}
-
-		cdr, ok := c.Cdr.(*Cell)
-		if !ok {
-			Panicf("expression must be a proper list: %s", c)
-		}
-		c = cdr
-	}
-	return values
-}
-
 func (c *Cell) Eval(env Environment) Value {
 	if c == nil {
 		return NIL
@@ -60,9 +39,8 @@ func (c *Cell) Eval(env Environment) Value {
 		}
 	}
 
-	expr := c.List()
-	fn := expr[0].Eval(env)
-	args := evalList(env, expr[1:])
+	fn := c.Car.Eval(env)
+	args := evalList(env, c.Cdr)
 
 	return invoke(fn, args)
 }

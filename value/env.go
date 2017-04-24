@@ -25,7 +25,10 @@ var DefaultEnvironment = &env{
 		"equal": equalFn,
 		"car":   Func1(car),
 		"cdr":   Func1(cdr),
-		"cons":  Func2(cons),
+		"cadr":  Func1(cadr),
+		"cddr":  Func1(cddr),
+		"caddr": Func1(caddr),
+		"cons":  Func2(func(x, y Value) Value { return Cons(x, y) }),
 		"list":  FuncN(list),
 	},
 }

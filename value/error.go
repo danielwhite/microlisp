@@ -18,6 +18,11 @@ func Panicf(format string, a ...interface{}) {
 // Error is a value used to represent runtime errors.
 type Error string
 
+// Errorf returns an error with a formatted message.
+func Errorf(format string, a ...interface{}) Error {
+	return Error(fmt.Sprintf(format, a...))
+}
+
 // Error implements the error interface.
 func (e Error) Error() string {
 	return string(e)

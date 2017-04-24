@@ -9,8 +9,8 @@ var internedSymbols = map[string]*Atom{}
 
 var (
 	EOF        = Error("EOF")
-	NIL        = Intern("nil")
 	T          = Intern("t")
+	NIL        = Intern("nil")                // also: empty list
 	unassigned = &Atom{Name: "#[unassigned]"} // uninterned symbol
 )
 
@@ -60,131 +60,72 @@ func (v *Atom) Equal(x Value) Value {
 	return NIL
 }
 
-type List []Value
-
-func (v List) cadr() Value {
-	if len(v) < 2 {
-		Panicf("cadr: %s is not a pair", v)
-	}
-	return v[1]
-}
-
-func (v List) String() string {
-	return Sprint(v)
-}
-
-func (v List) Write(w io.Writer) {
-	io.WriteString(w, "(")
-	for {
-		v[0].Write(w)
-		v = v[1:]
-
-		// have we reached the end of the list?
-		if len(v) == 1 {
-			// is the list improper?
-			if v[0] != NIL {
-				io.WriteString(w, " . ")
-				v[0].Write(w)
-			}
-			break
-		}
-
-		io.WriteString(w, " ")
-	}
-	io.WriteString(w, ")")
-}
-
-func (v List) Eval(env Environment) Value {
-	if car, ok := v[0].(*Atom); ok {
-		switch car.Name {
-		case "quote":
-			return evalQuote(env, v)
-		case "cond":
-			return evalCond(env, v)
-		case "lambda":
-			return makeFunction(env, v)
-		case "label":
-			return evalLabel(env, v)
-		case "defun":
-			return evalDefun(env, v)
-		}
-	}
-
-	fn := v[0].Eval(env)
-	args := v[1:].evalList(env)
-	return invoke(fn, args)
-}
-
-func (v List) Equal(cmp Value) Value {
-	x, ok := cmp.(List)
-	if !ok {
-		return NIL
-	}
-
-	for i := range v {
-		if v[i].Equal(x[i]) == NIL {
-			return NIL
-		}
-	}
-	return T
-}
-
-// evalList evaluates a list of values.
-func (v List) evalList(env Environment) []Value {
-	if len(v) == 0 {
-		return []Value{}
-	}
-
-	if v[len(v)-1] != NIL {
-		Panicf("evlis: improper argument list")
-	}
-
-	results := make([]Value, len(v)-1)
-	for i, v := range v[:len(v)-1] {
+// evalList evaluates a proper list of values.
+func evalList(env Environment, expr []Value) []Value {
+	results := make([]Value, len(expr))
+	for i, v := range expr {
 		results[i] = v.Eval(env)
 	}
 	return results
 }
 
+// evalProgn evaluates a proper list of values, returning the last
+// value.
+func evalProgn(env Environment, expr []Value) Value {
+	results := evalList(env, expr)
+	return results[len(results)-1]
+}
+
 // evalQuote evaluates the quote special form.
-func evalQuote(env Environment, expr List) Value {
-	if len(expr) != 3 {
-		Panicf("ill-formed special form: %s", Sprint(expr))
+func evalQuote(expr *Cell) Value {
+	v, ok := expr.Cdr.(*Cell)
+	if !ok {
+		return Errorf("ill-formed special form: %s", expr)
 	}
-	return expr[1]
+	if v.Cdr != NIL {
+		return Errorf("ill-formed special form: %s", expr)
+	}
+
+	return v.Car
 }
 
 // evalCond evaluates the cond special form.
-func evalCond(env Environment, expr List) Value {
-	for _, v := range expr[1:] {
-		// ensure cadr is a list
-		u, ok := v.(List)
+func evalCond(env Environment, expr *Cell) Value {
+	next := expr
+	for next.Cdr != NIL {
+		v, ok := next.Cdr.(*Cell)
+		if !ok {
+			Panicf("ill-formed special form: %s", expr)
+
+		}
+		next = v
+
+		clause, ok := next.Car.(*Cell)
 		if !ok {
 			Panicf("ill-formed special form: %s", expr)
 		}
 
 		// if caadr is true, then we want to return the
 		// evaluation of the cdadr
-		if u[0].Eval(env) == T {
-			return u.cadr().Eval(env)
+		if clause.Car.Eval(env) == T {
+			body, ok := clause.Cdr.(*Cell)
+			if !ok {
+				Panicf("ill-formed clause: %s", clause)
+			}
+			return evalProgn(env, body.List())
 		}
 	}
-
 	return NIL
 }
 
 // evalLabel evaluates the label special form.
-func evalLabel(env Environment, expr List) Value {
-	if len(expr) != 4 {
-		Panicf("ill-formed special form: %s", expr)
-	}
-
-	label, ok := expr[1].(*Atom)
+func evalLabel(env Environment, expr *Cell) Value {
+	label, ok := cadr(expr).(*Atom)
 	if !ok {
 		Panicf("ill-formed special form: %s", expr)
 	}
 
-	lambda, ok := expr[2].(List)
+	lambda, ok := caddr(expr).(*Cell)
 	if !ok {
 		Panicf("ill-formed special form: %s", expr)
 	}
@@ -202,12 +143,13 @@ func evalLabel(env Environment, expr List) Value {
 }
 
 // evalDefun defines a function permanently.
-func evalDefun(env Environment, expr List) *Atom {
-	if len(expr) != 5 {
+func evalDefun(env Environment, expr *Cell) *Atom {
+	symbol, ok := cadr(expr).(*Atom)
+	if !ok {
 		Panicf("ill-formed special form: %s", expr)
 	}
 
-	symbol, ok := expr[1].(*Atom)
+	body, ok := cddr(expr).(*Cell)
 	if !ok {
 		Panicf("ill-formed special form: %s", expr)
 	}
@@ -217,42 +159,42 @@ func evalDefun(env Environment, expr List) *Atom {
 	// differs from a typical Lisp, but falls within McCarthy's
 	// described behaviour.
 	env.Define(symbol.Name, unassigned)
-	fn := makeFunction(env, append(List{&Atom{Name: "lambda"}}, expr[2:]...))
+	fn := makeFunction(env, Cons(&Atom{Name: "lambda"}, body))
 	env.Update(symbol.Name, fn)
 
 	return symbol
 }
 
 // makeFunction creates a new function from the lambda special form.
-func makeFunction(env Environment, expr List) Function {
-	if len(expr) < 4 {
-		Panicf("ill-formed special form: %s", expr)
-	}
-
+func makeFunction(env Environment, expr *Cell) Function {
 	f := &lambdaFunc{}
 
-	if v, ok := expr[1].(List); ok {
-		// Each item in the list of arguments must be an atom.
-		f.args = make([]string, len(v)-1)
-		for i, arg := range v[:len(v)-1] {
-			atom, ok := arg.(*Atom)
-			if !ok {
-				break
-			}
-			f.args[i] = atom.Name
-		}
-	} else if expr[1] == NIL {
-		// FIXME: This special case is currently necessary
-		// because we don't represent lists as cons cells.
-		//
-		// The only valid case is NIL in which case we have an
-		// empty list of args.
-		f.args = []string{}
+	var args []Value
+
+	// Extract arguments; ignoring the case of NIL.
+	argValue := cadr(expr)
+	if argValue == NIL {
+		// args are just empty
+	} else if argExpr, ok := argValue.(*Cell); ok {
+		args = argExpr.List()
 	} else {
 		Panicf("ill-formed special form: %s", expr)
 	}
 
-	body := expr[2:]
+	// Each item in the list of arguments must be an atom.
+	f.args = make([]string, len(args))
+	for i, arg := range args {
+		atom, ok := arg.(*Atom)
+		if !ok {
+			break
+		}
+		f.args[i] = atom.Name
+	}
+
+	bodyExpr, ok := cddr(expr).(*Cell)
+	if !ok {
+		Panicf("ill-formed special form: %s", expr)
+	}
 	f.fn = func(args []Value) Value {
 		if len(args) != len(f.args) {
 			Panicf("%s called with %d arguments, but requires %d",
@@ -265,8 +207,8 @@ func makeFunction(env Environment, expr List) Function {
 			extEnv.Define(arg, args[i])
 		}
 
-		results := body.evalList(extEnv)
-		return results[len(results)-1]
+		// Body is evaluated in an implicit progn.
+		return evalProgn(extEnv, bodyExpr.List())
 	}
 
 	return f

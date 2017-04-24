@@ -17,28 +17,33 @@ type Reader struct {
 }
 
 func (r *Reader) readList() (value.Value, error) {
-	var list value.List
+	head := &value.Cell{}
+	tail := head
 	for {
-		switch tok := r.scanner.Next(); tok.Type {
-		case scan.Atom:
-			list = append(list, value.Intern(tok.Text))
-		case scan.LeftParen:
-			v, err := r.readList()
-			if err != nil {
-				return nil, err
-			}
-			list = append(list, v)
-		case scan.RightParen:
-			if len(list) == 0 {
-				return value.NIL, nil
-			}
-			return append(list, value.NIL), nil
+		tok := r.scanner.Next()
+		switch tok.Type {
 		case scan.EOF:
 			return nil, errEOF
 		case scan.Error:
 			return nil, errors.New(tok.Text)
 		case scan.Comment:
-			// comments are ignored
+			continue // comments are skipped
+		case scan.RightParen:
+			tail.Cdr = value.NIL
+			return head.Cdr, nil
+		case scan.Atom:
+			atom := value.Intern(tok.Text)
+			cell := &value.Cell{Car: atom}
+			tail.Cdr = cell
+			tail = cell
+		case scan.LeftParen:
+			list, err := r.readList()
+			if err != nil {
+				return nil, err
+			}
+			cell := &value.Cell{Car: list}
+			tail.Cdr = cell
+			tail = cell
 		default:
 			return nil, fmt.Errorf("unexpected token in list: %s", tok)
 		}

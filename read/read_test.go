@@ -13,37 +13,26 @@ import (
 )
 
 func TestRead(t *testing.T) {
+	a, b, c := value.Intern("a"), value.Intern("b"), value.Intern("c")
+
 	testCases := []struct {
 		expr string
 		want value.Value
 	}{
-		{"foo", &value.Atom{Name: "foo"}},
+		{"a", a},
 		{"()", value.NIL},
-		{"(a)", value.List{&value.Atom{Name: "a"}, value.NIL}},
-		{"(a b)",
-			value.List{
-				&value.Atom{Name: "a"},
-				&value.Atom{Name: "b"},
-				value.NIL,
-			}},
+		{"(a)", value.Cons(a, value.NIL)},
+		{"(a b)", value.Cons(a, value.Cons(b, value.NIL))},
+		{"(a b c)", value.Cons(a, value.Cons(b, value.Cons(c, value.NIL)))},
 		{"(a (b c))",
-			value.List{
-				&value.Atom{Name: "a"},
-				value.List{
-					&value.Atom{Name: "b"},
-					&value.Atom{Name: "c"},
-					value.NIL,
-				},
-				value.NIL,
-			}},
+			value.Cons(a,
+				value.Cons(
+					value.Cons(b, value.Cons(c, value.NIL)),
+					value.NIL))},
 		{`; comments
                   (a ; example
                    b)`,
-			value.List{
-				&value.Atom{Name: "a"},
-				&value.Atom{Name: "b"},
-				value.NIL,
-			}},
+			value.Cons(a, value.Cons(b, value.NIL))},
 		{")", value.Error("unbalanced closed parenthesis")},
 		{"(", value.Error("premature EOF")},
 	}
@@ -51,22 +40,20 @@ func TestRead(t *testing.T) {
 		t.Run(tc.expr, func(t *testing.T) {
 			got := run.ReadString(tc.expr)
 			if !reflect.DeepEqual(tc.want, got) {
-				t.Errorf("want %#v, got %#v", tc.want, got)
+				t.Errorf("want %s, got %s", tc.want, got)
 			}
 		})
 	}
 }
 
 func TestReadMultiple(t *testing.T) {
+	a, b, c := value.Intern("a"), value.Intern("b"), value.Intern("c")
+
 	src := "a (a b) c"
 	want := []value.Value{
-		&value.Atom{Name: "a"},
-		value.List{
-			&value.Atom{Name: "a"},
-			&value.Atom{Name: "b"},
-			value.NIL,
-		},
-		&value.Atom{Name: "c"},
+		a,
+		value.Cons(a, value.Cons(b, value.NIL)),
+		c,
 	}
 
 	got, err := readAll(src)
@@ -75,7 +62,7 @@ func TestReadMultiple(t *testing.T) {
 	}
 
 	if !reflect.DeepEqual(want, got) {
-		t.Errorf("want %#v, got %#v", want, got)
+		t.Errorf("want %s, got %s", want, got)
 	}
 }
 

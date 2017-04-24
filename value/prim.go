@@ -21,33 +21,50 @@ func equal(a Value, b Value) Value {
 }
 
 func car(arg Value) Value {
-	v, ok := arg.(List)
-	if !ok || len(v) == 0 {
-		Panicf("car: %s is not a pair", arg)
+	switch v := arg.(type) {
+	case *Cell:
+		return v.Car
+	case Error:
+		return arg
+	default:
+		return Errorf("car: %s is not a pair", arg)
 	}
-	return v[0]
 }
 
 func cdr(arg Value) Value {
-	v, ok := arg.(List)
-	if !ok {
-		Panicf("cdr: %s is not a pair", arg)
+	switch v := arg.(type) {
+	case *Cell:
+		return v.Cdr
+	case Error:
+		return arg
+	default:
+		return Errorf("cdr: %s is not a pair", arg)
 	}
-	return v[1:]
 }
 
-func cons(a Value, b Value) Value {
-	switch v := b.(type) {
-	case List:
-		return append(List{a}, v...)
-	default:
-		return List{a, b}
-	}
+func cadr(v Value) Value {
+	return car(cdr(v))
+}
+
+func cddr(v Value) Value {
+	return cdr(cdr(v))
+}
+
+func caddr(v Value) Value {
+	return car(cdr(cdr(v)))
 }
 
 func list(args []Value) Value {
 	if len(args) == 0 {
 		return NIL
 	}
-	return List(append(args, NIL))
+	if len(args) == 1 {
+		return Cons(args[0], NIL)
+	}
+
+	var last Value = NIL
+	for i := len(args) - 1; i >= 0; i-- {
+		last = Cons(args[i], last)
+	}
+	return last
 }

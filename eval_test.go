@@ -87,6 +87,7 @@ func TestEval(t *testing.T) {
                    (quote ((a b) c)))`,
 			"a"},
 
+		{`(defun ff () 1) (ff)`, "ff\n1"},
 		{`(defun ff (x)
                     (cond ((atom x) x)
                           ((quote t) (ff (car x)))))

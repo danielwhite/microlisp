@@ -5,29 +5,20 @@ import (
 )
 
 func TestSprint(t *testing.T) {
+	a, b, c := Intern("a"), Intern("b"), Intern("c")
+
 	testCases := []struct {
 		value Value
 		want  string
 	}{
-		{Intern("a"), "a"},
+		{a, "a"},
 		{NIL, "nil"},
-		{List{NIL, NIL}, "(nil)"},
-		{List{Intern("a"), NIL}, "(a)"},
-		{List{
-			Intern("a"),
-			Intern("b"),
-			NIL},
-			"(a b)"},
+		{Cons(NIL, NIL), "(nil)"},
+		{Cons(a, NIL), "(a)"},
+		{Cons(a, Cons(b, NIL)), "(a b)"},
 		// Printing of improper lists.
-		{List{
-			Intern("a"),
-			Intern("b")},
-			"(a . b)"},
-		{List{
-			Intern("a"),
-			Intern("b"),
-			Intern("c")},
-			"(a b . c)"},
+		{Cons(a, b), "(a . b)"},
+		{Cons(a, Cons(b, c)), "(a b . c)"},
 	}
 	for _, tc := range testCases {
 		t.Run(tc.want, func(t *testing.T) {

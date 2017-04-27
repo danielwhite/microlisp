@@ -48,104 +48,58 @@ func (f *lambdaFunc) Invoke(args []Value) Value {
 	return f.fn(args)
 }
 
+// FuncN creates a Function value from a native Go function that
+// accepts a variable number of arguments.
+func FuncN(fn func(vs []Value) Value) Function {
+	return &nativeFunc{fn: fn}
+}
+
+// Func2 creates a Function value from a native Go function that
+// accepts a single argument.
 func Func1(fn func(Value) Value) Function {
-	return &func1{fn}
+	return FuncN(func(vs []Value) Value {
+		if len(vs) != 1 {
+			Panicf("called with %d arguments; requires exactly 1 argument", len(vs))
+		}
+		return fn(vs[0])
+	})
 }
 
-// func1 represents a function that accepts a single argument.
-type func1 struct {
-	fn func(Value) Value
-}
-
-func (f *func1) Write(w io.Writer) {
-	fmt.Fprintf(w, "#[compiled-function %p]", f)
-}
-
-func (f *func1) String() string {
-	return Sprint(f)
-}
-
-func (f *func1) Eval(Environment) Value {
-	return f
-}
-
-func (f *func1) Invoke(args []Value) Value {
-	if len(args) != 1 {
-		Panicf("called with %d arguments; requires exactly 1 argument", len(args))
-	}
-	return f.fn(args[0])
-}
-
-func (f *func1) Equal(cmp Value) Value {
-	if x, ok := cmp.(*func1); ok && f == x {
-		return T
-	}
-	return NIL
-}
-
+// Func2 creates a Function value from a native Go function that
+// accepts two arguments.
 func Func2(fn func(Value, Value) Value) Function {
-	return &func2{fn}
+	return FuncN(func(vs []Value) Value {
+		if len(vs) != 2 {
+			Panicf("called with %d arguments; requires exactly 1 argument", len(vs))
+		}
+		return fn(vs[0], vs[1])
+	})
 }
 
-// func2 represents a function that accepts exactly two arguments.
-type func2 struct {
-	fn func(Value, Value) Value
-}
-
-func (f *func2) Write(w io.Writer) {
-	fmt.Fprintf(w, "#[compiled-function %p]", f)
-}
-
-func (f *func2) String() string {
-	return Sprint(f)
-}
-
-func (f *func2) Eval(Environment) Value {
-	return f
-}
-
-func (f *func2) Invoke(args []Value) Value {
-	if len(args) != 2 {
-		Panicf("called with %d arguments; requires exactly 1 argument", len(args))
-	}
-	return f.fn(args[0], args[1])
-}
-
-func (f *func2) Equal(cmp Value) Value {
-	if x, ok := cmp.(*func2); ok && f == x {
-		return T
-	}
-	return NIL
-}
-
-func FuncN(fn func([]Value) Value) Function {
-	return &funcN{fn}
-}
-
-// funcN represents a function that accepts a variable number
+// nativeFunc holds a native function that accepts a variable number
 // arugments.
-type funcN struct {
+type nativeFunc struct {
 	fn func([]Value) Value
 }
 
-func (f *funcN) Write(w io.Writer) {
+func (f *nativeFunc) Write(w io.Writer) {
 	fmt.Fprintf(w, "#[compiled-function %p]", f)
 }
 
-func (f *funcN) String() string {
+func (f *nativeFunc) String() string {
 	return Sprint(f)
 }
 
-func (f *funcN) Eval(Environment) Value {
+func (f *nativeFunc) Eval(Environment) Value {
 	return f
 }
 
-func (f *funcN) Invoke(args []Value) Value {
+func (f *nativeFunc) Invoke(args []Value) Value {
 	return f.fn(args)
 }
 
-func (f *funcN) Equal(cmp Value) Value {
-	if x, ok := cmp.(*funcN); ok && f == x {
+func (f *nativeFunc) Equal(cmp Value) Value {
+	if x, ok := cmp.(*nativeFunc); ok && f == x {
 		return T
 	}
 	return NIL

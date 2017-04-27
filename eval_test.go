@@ -66,6 +66,7 @@ func TestEval(t *testing.T) {
 
 		{"(cond ((atom (quote a)) (quote b)) ((quote t) (quote c)))", "b"},
 		{"(cond ((atom car) (quote b)) ((quote t) (quote c)))", "c"},
+		{"(cond ((atom car) (quote b)) (t (quote c)))", "c"},
 
 		{"((lambda () (quote a)))", "a"},
 		{"((lambda (a) a) b)", "b"},

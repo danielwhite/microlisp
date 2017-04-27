@@ -28,6 +28,10 @@ func (e Error) Error() string {
 	return string(e)
 }
 
+func (e Error) String() string {
+	return Sprint(e)
+}
+
 // Write implements the Value interface.
 func (e Error) Write(w io.Writer) {
 	fmt.Fprintf(w, "#[error: %s]", e)
@@ -35,7 +39,7 @@ func (e Error) Write(w io.Writer) {
 
 // Eval implements the Value interface.
 func (e Error) Eval(env Environment) Value {
-	panic(e) // why are we evaluating an error!?
+	return e
 }
 
 // Equal implments the Value interface.

@@ -1,10 +1,17 @@
 package value
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+	"io"
+)
 
 // An environment maintains a set of bindings that are typically
 // referenced when evaluating a Lisp expression.
 type Environment interface {
+	Value
+	// Returns the list of defined symbols.
+	Names() []string
 	// Lookup the value of a symbol.
 	Lookup(name string) (Value, bool)
 	// Define a new symbol.
@@ -15,7 +22,9 @@ type Environment interface {
 
 var equalFn = Func2(equal)
 
-var DefaultEnvironment = &env{
+// SystemEnvironment is the toplevel environment where primitives are
+// defined.
+var SystemEnvironment = &env{
 	env: map[string]Value{
 		"atom":   Func1(atom),
 		"null":   Func1(null),
@@ -31,7 +40,33 @@ var DefaultEnvironment = &env{
 		"caddar": Func1(caddar),
 		"cons":   Func2(func(x, y Value) Value { return Cons(x, y) }),
 		"list":   FuncN(list),
+
+		// Environment Primitives
+		"environment-bindings": EnvFunc(func(env Environment) Value {
+			names := env.Names()
+			bindings := make([]Value, len(names))
+			for i, name := range names {
+				v, _ := env.Lookup(name)
+				bindings[i] = Cons(Intern(name), v)
+			}
+			return list(bindings)
+		}),
 	},
+}
+
+// FuncEnv creates a Function value from a native Go function that
+// only accepts environments.
+func EnvFunc(fn func(Environment) Value) Function {
+	return Func1(func(v Value) Value {
+		if env, ok := v.(Environment); ok {
+			return fn(env)
+		}
+		return Errorf("%s is not an environment", v)
+	})
+}
+
+func init() {
+	SystemEnvironment.Define("system-environment", SystemEnvironment)
 }
 
 // NewEnv returns a new environment that extends the bindings of
@@ -46,6 +81,39 @@ func NewEnv(parent Environment) Environment {
 type env struct {
 	env    map[string]Value
 	parent Environment
+}
+
+// Write implements the Value interface.
+func (e *env) Write(w io.Writer) {
+	fmt.Fprintf(w, "#[env %p %d]", e, len(e.env))
+}
+
+func (e *env) String() string {
+	return Sprint(e)
+}
+
+// Equal implments the Value interface, and returns T for the same
+// environment.
+func (e *env) Equal(cmp Value) Value {
+	if x, ok := cmp.(*env); ok && e == x {
+		return T
+	}
+	return NIL
+}
+
+// Eval implements the Value interface.
+func (e *env) Eval(Environment) Value {
+	return e
+}
+
+// Names implements the Environment interface, returning a list of all
+// defined symbols.
+func (e *env) Names() []string {
+	names := make([]string, 0, len(e.env))
+	for k := range e.env {
+		names = append(names, k)
+	}
+	return names
 }
 
 // Define implements the Environment interface.

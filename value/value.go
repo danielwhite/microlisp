@@ -21,6 +21,7 @@ type Value interface {
 	// If the value has a valid written representation, then this
 	// should output an external representation suitable for read.
 	Write(io.Writer)
+	String() string
 }
 
 func Intern(name string) *Atom {

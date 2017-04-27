@@ -17,8 +17,6 @@ var equalFn = Func2(equal)
 
 var DefaultEnvironment = &env{
 	env: map[string]Value{
-		"t":      T,
-		"nil":    NIL,
 		"atom":   Func1(atom),
 		"null":   Func1(null),
 		"eq":     equalFn, // alias

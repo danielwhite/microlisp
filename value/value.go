@@ -45,6 +45,12 @@ func (v *Atom) Write(w io.Writer) {
 }
 
 func (v *Atom) Eval(env Environment) Value {
+	if v == T {
+		return T
+	}
+	if v == NIL {
+		return NIL
+	}
 	if v, ok := env.Lookup(v.Name); ok {
 		return v
 	}

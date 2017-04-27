@@ -42,6 +42,10 @@ func cdr(arg Value) Value {
 	}
 }
 
+func caar(v Value) Value {
+	return car(car(v))
+}
+
 func cadr(v Value) Value {
 	return car(cdr(v))
 }
@@ -52,6 +56,14 @@ func cddr(v Value) Value {
 
 func caddr(v Value) Value {
 	return car(cdr(cdr(v)))
+}
+
+func cadar(v Value) Value {
+	return car(cdr(car(v)))
+}
+
+func caddar(v Value) Value {
+	return car(cdr(cdr(car(v))))
 }
 
 func list(args []Value) Value {

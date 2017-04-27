@@ -17,19 +17,22 @@ var equalFn = Func2(equal)
 
 var DefaultEnvironment = &env{
 	env: map[string]Value{
-		"t":     T,
-		"nil":   NIL,
-		"atom":  Func1(atom),
-		"null":  Func1(null),
-		"eq":    equalFn, // alias
-		"equal": equalFn,
-		"car":   Func1(car),
-		"cdr":   Func1(cdr),
-		"cadr":  Func1(cadr),
-		"cddr":  Func1(cddr),
-		"caddr": Func1(caddr),
-		"cons":  Func2(func(x, y Value) Value { return Cons(x, y) }),
-		"list":  FuncN(list),
+		"t":      T,
+		"nil":    NIL,
+		"atom":   Func1(atom),
+		"null":   Func1(null),
+		"eq":     equalFn, // alias
+		"equal":  equalFn,
+		"car":    Func1(car),
+		"cdr":    Func1(cdr),
+		"caar":   Func1(caar),
+		"cadr":   Func1(cadr),
+		"cddr":   Func1(cddr),
+		"caddr":  Func1(caddr),
+		"cadar":  Func1(cadar),
+		"caddar": Func1(caddar),
+		"cons":   Func2(func(x, y Value) Value { return Cons(x, y) }),
+		"list":   FuncN(list),
 	},
 }
 

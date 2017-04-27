@@ -52,6 +52,13 @@ func TestEval(t *testing.T) {
 		{"(cdr (quote (1 2)))", "(2)"},
 		{"(cdr (quote 1))", "#[error: cdr: 1 is not a pair]"},
 
+		{"(caar (quote ((a . 1) (b . 2) (c . 3))))", "a"},
+		{"(cadr (quote ((a a') b c)))", "b"},
+		{"(cddr (quote ((a a') b c)))", "(c)"},
+		{"(caddr (quote ((a a') b c)))", "c"},
+		{"(cadar (quote ((a a') b c)))", "a'"},
+		{"(caddar (quote ((a a' a'') b c)))", "a''"},
+
 		{"(cons 1 2)", "(1 . 2)"},
 		{"(cons 1 (cons 2 ()))", "(1 2)"},
 		{"(cons (quote a) (quote (b c)))", "(a b c)"},

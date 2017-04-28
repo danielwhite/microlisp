@@ -1,3 +1,5 @@
+;;; -*- inferior-lisp-program: "microlisp" -*-
+
 ;;; This definition of EVAL is based on McCarthy's Micro-Lisp Manual.
 
 (defun eval (e a)

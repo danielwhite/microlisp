@@ -1,6 +1,6 @@
 # microlisp
 
-Microlisp is a Lisp interpreter. It's primarly a toy, and is a work in progress.
+Microlisp is a Lisp interpreter. It's primarily a toy, and is a work in progress.
 
 Its initial definition is based on McCarthy's ["A Micro-Manual for Lisp: Not the Whole Truth"](_doc/Micro-Manual_for_LISP.pdf).
 

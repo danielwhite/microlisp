@@ -31,7 +31,7 @@ func (c *Cell) Walk(fn func(Value)) {
 
 		next, ok := cur.Cdr.(*Cell)
 		if !ok {
-			Errorf("improper list: %s", c)
+			Errorf("cannot evaluate an improper list: %s", c)
 		}
 		cur = next
 	}

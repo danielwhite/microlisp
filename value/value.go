@@ -4,10 +4,11 @@ package value
 var internedSymbols = map[string]*Atom{}
 
 var (
-	EOF        = Error("EOF")
-	T          = Intern("t")
-	NIL        = Intern("nil")                // also: empty list
-	unassigned = &Atom{Name: "#[unassigned]"} // uninterned symbol
+	EOF         = Error("EOF")
+	T           = Intern("t")
+	NIL         = Intern("nil")                // also: empty list
+	unassigned  = &Atom{Name: "#[unassigned]"} // uninterned symbol
+	unspecified = &Atom{Name: "#[unspecified return value]"}
 )
 
 // Value is a runtime representation of Lisp data.
@@ -78,8 +79,16 @@ func evalList(env Environment, expr Value) []Value {
 // evalProgn evaluates a proper list of values, returning the last
 // value.
 func evalProgn(env Environment, expr Value) Value {
-	results := evalList(env, expr)
-	return results[len(results)-1]
+	list, ok := expr.(*Cell)
+	if !ok {
+		Errorf("implicit progn must be a list: %s", expr)
+	}
+
+	var last Value = unspecified
+	list.Walk(func(v Value) {
+		last = v.Eval(env)
+	})
+	return last
 }
 
 // evalQuote evaluates the quote special form.

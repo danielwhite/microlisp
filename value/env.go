@@ -3,7 +3,6 @@ package value
 import (
 	"errors"
 	"fmt"
-	"io"
 )
 
 // An environment maintains a set of bindings that are typically
@@ -75,13 +74,8 @@ type env struct {
 	parent Environment
 }
 
-// Write implements the Value interface.
-func (e *env) Write(w io.Writer) {
-	fmt.Fprintf(w, "#[env %p %d]", e, len(e.env))
-}
-
 func (e *env) String() string {
-	return Sprint(e)
+	return fmt.Sprintf("#[env %p %d]", e, len(e.env))
 }
 
 // Equal implments the Value interface, and returns T for the same

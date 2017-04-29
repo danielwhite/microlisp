@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestSprint(t *testing.T) {
+func TestValueString(t *testing.T) {
 	a, b, c := Intern("a"), Intern("b"), Intern("c")
 
 	testCases := []struct {
@@ -22,7 +22,7 @@ func TestSprint(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.want, func(t *testing.T) {
-			got := Sprint(tc.value)
+			got := tc.value.String()
 			if tc.want != got {
 				t.Errorf("want:\n%s\ngot:\n%s", tc.want, got)
 			}

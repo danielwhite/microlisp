@@ -1,7 +1,7 @@
 package value
 
 import (
-	"io"
+	"bytes"
 )
 
 // Cons constructs an object that holds two values.
@@ -61,13 +61,11 @@ func (c *Cell) Equal(cmp Value) Value {
 }
 
 func (c *Cell) String() string {
-	return Sprint(c)
-}
+	var buf bytes.Buffer
 
-func (c *Cell) Write(w io.Writer) {
-	io.WriteString(w, "(")
+	buf.WriteByte('(')
 	for {
-		c.Car.Write(w)
+		buf.WriteString(c.Car.String())
 
 		// If Cdr is NIL, then finish proper list.
 		if c.Cdr == NIL {
@@ -77,13 +75,15 @@ func (c *Cell) Write(w io.Writer) {
 		// Check for an improper list.
 		cdr, ok := c.Cdr.(*Cell)
 		if !ok {
-			io.WriteString(w, " . ")
-			c.Cdr.Write(w)
+			buf.WriteString(" . ")
+			buf.WriteString(c.Cdr.String())
 			break
 		}
 		c = cdr // move to next cell
 
-		io.WriteString(w, " ")
+		buf.WriteByte(' ')
 	}
-	io.WriteString(w, ")")
+	buf.WriteByte(')')
+
+	return buf.String()
 }

@@ -2,7 +2,6 @@ package value
 
 import (
 	"fmt"
-	"io"
 )
 
 // invoke applies a list of arguments to a function.
@@ -24,13 +23,9 @@ type lambdaFunc struct {
 	fn   func([]Value) Value
 }
 
-func (f *lambdaFunc) Write(w io.Writer) {
-	// FIXME: args should be printed with `()`, instead of `[]`.
-	fmt.Fprintf(w, "#[lambda %p %s]", f, f.args)
-}
-
 func (f *lambdaFunc) String() string {
-	return Sprint(f)
+	// FIXME: args should be printed with `()`, instead of `[]`.
+	return fmt.Sprintf("#[lambda %p %s]", f, f.args)
 }
 
 func (f *lambdaFunc) Eval(Environment) Value {
@@ -82,12 +77,8 @@ type nativeFunc struct {
 	fn func([]Value) Value
 }
 
-func (f *nativeFunc) Write(w io.Writer) {
-	fmt.Fprintf(w, "#[compiled-function %p]", f)
-}
-
 func (f *nativeFunc) String() string {
-	return Sprint(f)
+	return fmt.Sprintf("#[compiled-function %p]", f)
 }
 
 func (f *nativeFunc) Eval(Environment) Value {

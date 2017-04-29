@@ -79,8 +79,7 @@ func Run(r io.Reader, w io.Writer) error {
 		result := Eval(v)
 
 		// Print the result.
-		result.Write(w)
-		fmt.Fprintln(w)
+		fmt.Fprintln(w, result.String())
 	}
 }
 

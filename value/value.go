@@ -1,10 +1,6 @@
 // Package value implements Lisp values and their evaluation.
 package value
 
-import (
-	"io"
-)
-
 var internedSymbols = map[string]*Atom{}
 
 var (
@@ -20,7 +16,6 @@ type Value interface {
 	Equal(Value) Value
 	// If the value has a valid written representation, then this
 	// should output an external representation suitable for read.
-	Write(io.Writer)
 	String() string
 }
 
@@ -39,10 +34,6 @@ type Atom struct {
 
 func (v Atom) String() string {
 	return v.Name
-}
-
-func (v *Atom) Write(w io.Writer) {
-	io.WriteString(w, v.Name)
 }
 
 func (v *Atom) Eval(env Environment) Value {

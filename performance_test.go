@@ -38,13 +38,13 @@ func BenchmarkFprint(b *testing.B) {
 
 	// Initial print to allocate underlying buffer.
 	var buf bytes.Buffer
-	v.Write(&buf)
+	buf.WriteString(v.String())
 	b.SetBytes(int64(buf.Len()))
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
 		buf.Reset()
-		v.Write(&buf)
+		buf.WriteString(v.String())
 	}
 }
 

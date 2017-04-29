@@ -2,7 +2,6 @@ package value
 
 import (
 	"fmt"
-	"io"
 )
 
 // Panic raises an error with the given message.
@@ -29,12 +28,7 @@ func (e Error) Error() string {
 }
 
 func (e Error) String() string {
-	return Sprint(e)
-}
-
-// Write implements the Value interface.
-func (e Error) Write(w io.Writer) {
-	fmt.Fprintf(w, "#[error: %s]", e)
+	return fmt.Sprintf("#[error: %s]", string(e))
 }
 
 // Eval implements the Value interface.

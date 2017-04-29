@@ -18,6 +18,25 @@ type Cell struct {
 	Cdr Value
 }
 
+// Walk traverses calls fn(Car) for each cell in a list.
+func (c *Cell) Walk(fn func(Value)) {
+	cur := c
+	for {
+		fn(cur.Car)
+
+		// The last cell has been reached.
+		if cur.Cdr == NIL {
+			return
+		}
+
+		next, ok := cur.Cdr.(*Cell)
+		if !ok {
+			Errorf("improper list: %s", c)
+		}
+		cur = next
+	}
+}
+
 func (c *Cell) Eval(env Environment) Value {
 	if c == nil {
 		return NIL

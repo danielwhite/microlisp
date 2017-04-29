@@ -21,25 +21,19 @@ func equal(a Value, b Value) Value {
 }
 
 func car(arg Value) Value {
-	switch v := arg.(type) {
-	case *Cell:
-		return v.Car
-	case Error:
-		return arg
-	default:
-		return Errorf("car: %s is not a pair", arg)
+	v, ok := arg.(*Cell)
+	if !ok {
+		Errorf("car: %s is not a pair", arg)
 	}
+	return v.Car
 }
 
 func cdr(arg Value) Value {
-	switch v := arg.(type) {
-	case *Cell:
-		return v.Cdr
-	case Error:
-		return arg
-	default:
-		return Errorf("cdr: %s is not a pair", arg)
+	v, ok := arg.(*Cell)
+	if !ok {
+		Errorf("cdr: %s is not a pair", arg)
 	}
+	return v.Cdr
 }
 
 func caar(v Value) Value {

@@ -64,7 +64,7 @@ func evalList(env Environment, expr Value) []Value {
 	for next := expr; next != NIL; {
 		v, ok := next.(*Cell)
 		if !ok {
-			Panicf("cannot evaluate an improper list: %s", expr)
+			Errorf("cannot evaluate an improper list: %s", expr)
 		}
 
 		results = append(results, v.Car.Eval(env))
@@ -86,10 +86,10 @@ func evalProgn(env Environment, expr Value) Value {
 func evalQuote(expr *Cell) Value {
 	v, ok := expr.Cdr.(*Cell)
 	if !ok {
-		return Errorf("ill-formed special form: %s", expr)
+		Errorf("ill-formed special form: %s", expr)
 	}
 	if v.Cdr != NIL {
-		return Errorf("ill-formed special form: %s", expr)
+		Errorf("ill-formed special form: %s", expr)
 	}
 
 	return v.Car
@@ -101,14 +101,13 @@ func evalCond(env Environment, expr *Cell) Value {
 	for next.Cdr != NIL {
 		v, ok := next.Cdr.(*Cell)
 		if !ok {
-			Panicf("ill-formed special form: %s", expr)
-
+			Errorf("ill-formed special form: %s", expr)
 		}
 		next = v
 
 		clause, ok := next.Car.(*Cell)
 		if !ok {
-			Panicf("ill-formed special form: %s", expr)
+			Errorf("ill-formed special form: %s", expr)
 		}
 
 		// if caadr is true, then we want to return the
@@ -116,7 +115,7 @@ func evalCond(env Environment, expr *Cell) Value {
 		if clause.Car.Eval(env) == T {
 			body, ok := clause.Cdr.(*Cell)
 			if !ok {
-				Panicf("ill-formed clause: %s", clause)
+				Errorf("ill-formed clause: %s", clause)
 			}
 			return evalProgn(env, body)
 		}
@@ -128,12 +127,12 @@ func evalCond(env Environment, expr *Cell) Value {
 func evalLabel(env Environment, expr *Cell) Value {
 	label, ok := cadr(expr).(*Atom)
 	if !ok {
-		Panicf("ill-formed special form: %s", expr)
+		Errorf("ill-formed special form: %s", expr)
 	}
 
 	lambda, ok := caddr(expr).(*Cell)
 	if !ok {
-		Panicf("ill-formed special form: %s", expr)
+		Errorf("ill-formed special form: %s", expr)
 	}
 
 	// Evaluate lambda in an environment where it is able to
@@ -152,12 +151,12 @@ func evalLabel(env Environment, expr *Cell) Value {
 func evalDefun(env Environment, expr *Cell) *Atom {
 	symbol, ok := cadr(expr).(*Atom)
 	if !ok {
-		Panicf("ill-formed special form: %s", expr)
+		Errorf("ill-formed special form: %s", expr)
 	}
 
 	body, ok := cddr(expr).(*Cell)
 	if !ok {
-		Panicf("ill-formed special form: %s", expr)
+		Errorf("ill-formed special form: %s", expr)
 	}
 
 	// By defining in the current environment, we add a permanent
@@ -175,30 +174,36 @@ func evalDefun(env Environment, expr *Cell) *Atom {
 func makeFunction(env Environment, expr *Cell) Function {
 	f := &lambdaFunc{}
 
-	// Gather each argument name so we can extend the environment.
-	for next := cadr(expr); next != NIL; {
-		v, ok := next.(*Cell)
+	checkForm := func(ok bool) {
 		if !ok {
-			Panicf("ill-formed special form: %s", expr)
+			Errorf("ill-formed special form: %s", expr)
 		}
-
-		atom, ok := v.Car.(*Atom)
-		if !ok {
-			break
-		}
-		f.args = append(f.args, atom.Name)
-
-		next = v.Cdr
 	}
 
-	// Convert the body into an interpreted function.
-	bodyExpr, ok := cddr(expr).(*Cell)
-	if !ok {
-		Panicf("ill-formed special form: %s", expr)
+	// extract arguments from: (cadr expr)
+	cdr, ok := expr.Cdr.(*Cell)
+	checkForm(ok)
+
+	if cdr.Car != NIL {
+		argExpr, ok := cdr.Car.(*Cell)
+		checkForm(ok)
+
+		// Gather each argument name so we can extend the environment.
+		argExpr.Walk(func(v Value) {
+			atom, ok := v.(*Atom)
+			checkForm(ok)
+
+			f.args = append(f.args, atom.Name)
+		})
 	}
+
+	// rest of epxression is the body: (cddr expr)
+	bodyExpr, ok := cdr.Cdr.(*Cell)
+	checkForm(ok)
+
 	f.fn = func(args []Value) Value {
 		if len(args) != len(f.args) {
-			Panicf("%s called with %d arguments, but requires %d",
+			Errorf("%s called with %d arguments, but requires %d",
 				f, len(args), len(f.args))
 		}
 

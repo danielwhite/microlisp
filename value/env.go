@@ -49,10 +49,11 @@ var SystemEnvironment = &env{
 // only accepts environments.
 func EnvFunc(fn func(Environment) Value) Function {
 	return Func1(func(v Value) Value {
-		if env, ok := v.(Environment); ok {
-			return fn(env)
+		env, ok := v.(Environment)
+		if !ok {
+			Errorf("%s is not an environment", v)
 		}
-		return Errorf("%s is not an environment", v)
+		return fn(env)
 	})
 }
 

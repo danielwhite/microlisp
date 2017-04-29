@@ -8,7 +8,7 @@ import (
 func invoke(v Value, args []Value) Value {
 	fn, ok := v.(Function)
 	if !ok {
-		Panicf("invoke: %s is not a function", v)
+		Errorf("invoke: %s is not a function", v)
 	}
 	return fn.Invoke(args)
 }
@@ -54,7 +54,7 @@ func FuncN(fn func(vs []Value) Value) Function {
 func Func1(fn func(Value) Value) Function {
 	return FuncN(func(vs []Value) Value {
 		if len(vs) != 1 {
-			Panicf("called with %d arguments; requires exactly 1 argument", len(vs))
+			Errorf("called with %d arguments; requires exactly 1 argument", len(vs))
 		}
 		return fn(vs[0])
 	})
@@ -65,7 +65,7 @@ func Func1(fn func(Value) Value) Function {
 func Func2(fn func(Value, Value) Value) Function {
 	return FuncN(func(vs []Value) Value {
 		if len(vs) != 2 {
-			Panicf("called with %d arguments; requires exactly 1 argument", len(vs))
+			Errorf("called with %d arguments; requires exactly 1 argument", len(vs))
 		}
 		return fn(vs[0], vs[1])
 	})

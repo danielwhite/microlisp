@@ -63,9 +63,15 @@ func EvalString(expr string) value.Value {
 // Run a REPL loop, reading expressions from a reader, and writing the
 // evaluated values to a writer.
 func Run(r io.Reader, w io.Writer) error {
+	return run(r, w, "> ")
+}
+
+func run(r io.Reader, w io.Writer, prompt string) error {
 	scanner := scan.New(bufio.NewReader(r))
 	reader := read.New(scanner)
 	for {
+		io.WriteString(w, prompt)
+
 		// Read the next expression from the input.
 		v := reader.Read()
 		if v == value.EOF {
@@ -91,5 +97,5 @@ func Load(filename string) error {
 	}
 	defer file.Close()
 
-	return Run(file, os.Stdout)
+	return run(file, os.Stdout, "")
 }

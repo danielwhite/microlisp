@@ -59,32 +59,37 @@ func (v *Atom) Equal(x Value) Value {
 	return NIL
 }
 
-// evalList evaluates a proper list of values.
-func evalList(env Environment, expr Value) []Value {
-	var results []Value
-	for next := expr; next != NIL; {
-		v, ok := next.(*Cell)
-		if !ok {
-			Errorf("cannot evaluate an improper list: %s", expr)
-		}
-
-		results = append(results, v.Car.Eval(env))
-
-		next = v.Cdr
+// evalList evaluates a proper list of values, and returns the results
+// as a slice.
+func evalList(env Environment, v Value) (values []Value) {
+	if v == NIL {
+		return
 	}
 
-	return results
+	list, ok := v.(*Cell)
+	if !ok {
+		Errorf("%s is not a list", v)
+	}
+
+	list.Walk(func(v Value) {
+		values = append(values, v.Eval(env))
+	})
+	return
 }
 
 // evalProgn evaluates a proper list of values, returning the last
 // value.
-func evalProgn(env Environment, expr Value) Value {
-	list, ok := expr.(*Cell)
-	if !ok {
-		Errorf("implicit progn must be a list: %s", expr)
+func evalProgn(env Environment, v Value) Value {
+	var last Value = unspecified
+	if v == NIL {
+		return last
 	}
 
-	var last Value = unspecified
+	list, ok := v.(*Cell)
+	if !ok {
+		Errorf("implicit progn must be a list: %s", v)
+	}
+
 	list.Walk(func(v Value) {
 		last = v.Eval(env)
 	})

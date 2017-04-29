@@ -77,3 +77,15 @@ func list(args []Value) Value {
 	}
 	return last
 }
+
+// bindings returns an association list mapping each defined symbol in
+// an environment to its value.
+func bindings(env Environment) Value {
+	names := env.Names()
+	bindings := make([]Value, len(names))
+	for i, name := range names {
+		v, _ := env.Lookup(name)
+		bindings[i] = Cons(Intern(name), v)
+	}
+	return list(bindings)
+}

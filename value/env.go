@@ -42,15 +42,7 @@ var SystemEnvironment = &env{
 		"list":   FuncN(list),
 
 		// Environment Primitives
-		"environment-bindings": EnvFunc(func(env Environment) Value {
-			names := env.Names()
-			bindings := make([]Value, len(names))
-			for i, name := range names {
-				v, _ := env.Lookup(name)
-				bindings[i] = Cons(Intern(name), v)
-			}
-			return list(bindings)
-		}),
+		"environment-bindings": EnvFunc(bindings),
 	},
 }
 

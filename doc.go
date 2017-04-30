@@ -18,5 +18,14 @@ Variables.
 Functions.
 
   environment-bindings	The environment's bindings represented as an association list.
+
+Errors
+
+The error system is very simple. If an error value is thrown, it stops
+the current evaluation, and is handled and printed by the REPL.
+
+Functions.
+
+  error		Raise an error value with a message composed of its arguments.
 */
 package main // import "whitehouse.id.au/microlisp"

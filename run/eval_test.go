@@ -95,12 +95,16 @@ func TestEval(t *testing.T) {
                    (quote ((a b) c)))`,
 			"a"},
 
+		// Permanent function definitions
 		{`(defun ff () 1) (ff)`, "ff\n1"},
 		{`(defun ff (x)
                     (cond ((atom x) x)
                           ((quote t) (ff (car x)))))
                   (ff (quote ((a b) c)))`,
 			"ff\na"},
+
+		// Errors
+		{`(error something went wrong)`, "#[error: something went wrong]"},
 	}
 	for _, tc := range testCases {
 		t.Run(tc.expr, func(t *testing.T) {

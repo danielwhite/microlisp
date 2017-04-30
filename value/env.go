@@ -40,6 +40,9 @@ var SystemEnvironment = &env{
 		"cons":   Func2(func(x, y Value) Value { return Cons(x, y) }),
 		"list":   FuncN(list),
 
+		// Error Primitives
+		"error": FuncN(raiseError),
+
 		// Environment Primitives
 		"environment-bindings": EnvFunc(bindings),
 	},

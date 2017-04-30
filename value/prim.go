@@ -1,5 +1,10 @@
 package value
 
+import (
+	"fmt"
+	"strings"
+)
+
 // atom returns T if the value is an atom.
 func atom(arg Value) Value {
 	if _, ok := arg.(*Atom); ok {
@@ -82,4 +87,11 @@ func bindings(env Environment) Value {
 		bindings[i] = Cons(Intern(name), v)
 	}
 	return list(bindings)
+}
+
+// raiseError pretty-prints the values passed, and throws a
+// recoverable error.
+func raiseError(vs []Value) Value {
+	Errorf(strings.Trim(fmt.Sprintf("%s", vs), "[]"))
+	panic("not possible")
 }

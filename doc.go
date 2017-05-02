@@ -27,5 +27,6 @@ the current evaluation, and is handled and printed by the REPL.
 Functions.
 
   error		Raise an error value with a message composed of its arguments.
+  ignore-errors	Invoke a function, trapping any errors thrown as a return value.
 */
 package main // import "whitehouse.id.au/microlisp"

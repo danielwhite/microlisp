@@ -41,7 +41,8 @@ var SystemEnvironment = &env{
 		"list":   FuncN(list),
 
 		// Error Primitives
-		"error": FuncN(raiseError),
+		"error":         FuncN(raiseError),
+		"ignore-errors": Func1(trapError),
 
 		// Environment Primitives
 		"environment-bindings": EnvFunc(bindings),

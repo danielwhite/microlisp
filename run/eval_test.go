@@ -105,6 +105,10 @@ func TestEval(t *testing.T) {
 
 		// Errors
 		{`(error something went wrong)`, "#[error: something went wrong]"},
+
+		// Error recovery
+		{`(cons a (ignore-errors (lambda () (error trapped))))`, "(a . #[error: trapped])"},
+		{`((lambda (x) (ignore-errors (lambda () x))) 3)`, "3"},
 	}
 	for _, tc := range testCases {
 		t.Run(tc.expr, func(t *testing.T) {

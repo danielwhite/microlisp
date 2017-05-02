@@ -95,3 +95,15 @@ func raiseError(vs []Value) Value {
 	Errorf(strings.Trim(fmt.Sprintf("%s", vs), "[]"))
 	panic("not possible")
 }
+
+// trapError returns the value of an invoked function. If an error is
+// raised, the error value is instead returned.
+func trapError(fn Value) (v Value) {
+	defer func() {
+		if r := recover(); r != nil {
+			v = r.(Error)
+		}
+	}()
+	v = invoke(fn, []Value{})
+	return
+}

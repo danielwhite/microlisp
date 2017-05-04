@@ -103,6 +103,12 @@ func TestEval(t *testing.T) {
                   (ff (quote ((a b) c)))`,
 			"ff\na"},
 
+		// Function application
+		{`(apply)`, "#[error: called with 0 arguments; requires at least 1 argument]"},
+		{`(apply list)`, "nil"},
+		{`(apply list (quote (a)))`, "(a)"},
+		{`(apply list (quote a) (list (quote b)))`, "(a b)"},
+
 		// Errors
 		{`(error something went wrong)`, "#[error: something went wrong]"},
 
@@ -126,12 +132,12 @@ func TestEval(t *testing.T) {
 			// Read, eval, and print until done.
 			r := strings.NewReader(tc.expr)
 			var buf bytes.Buffer
-			run(r, &buf, "")
+			if err := run(r, &buf, ""); err != nil {
+				t.Fatal(err)
+			}
 
 			// Drop trailing newline to simplify test cases.
-			buf.Truncate(buf.Len() - 1)
-
-			got := buf.String()
+			got := strings.TrimRight(buf.String(), "\n")
 			if !matcher.MatchString(got) {
 				t.Errorf("want %q, got %q", tc.want, got)
 			}

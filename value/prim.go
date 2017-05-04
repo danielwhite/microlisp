@@ -77,6 +77,36 @@ func list(args []Value) Value {
 	return last
 }
 
+// apply a list as arguments to a function.
+//
+// This might be simpler by implementing it in terms of invoke.
+func apply(vs []Value) Value {
+	if len(vs) < 1 {
+		Errorf("called with %d arguments; requires at least 1 argument", len(vs))
+	}
+	if len(vs) == 1 {
+		return invoke(vs[0], []Value{})
+	}
+
+	// Each initial argument is prepended onto the final cons cell.
+	var args []Value
+	for _, v := range vs[1 : len(vs)-1] {
+		args = append(args, v)
+	}
+
+	// Flatten the final cons cell into the argument list.
+	last := vs[len(vs)-1]
+	cell, ok := last.(*Cell)
+	if !ok {
+		Errorf("apply: improper argument list: %s", vs[1])
+	}
+	cell.Walk(func(v Value) {
+		args = append(args, v)
+	})
+
+	return invoke(vs[0], args)
+}
+
 // bindings returns an association list mapping each defined symbol in
 // an environment to its value.
 func bindings(env Environment) Value {

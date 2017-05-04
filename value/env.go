@@ -39,6 +39,7 @@ var SystemEnvironment = &env{
 		"caddar": Func1(caddar),
 		"cons":   Func2(func(x, y Value) Value { return Cons(x, y) }),
 		"list":   FuncN(list),
+		"apply":  FuncN(apply),
 
 		// Error Primitives
 		"error":         FuncN(raiseError),

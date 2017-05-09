@@ -4,16 +4,13 @@ package value
 var internedSymbols = map[string]*Atom{}
 
 var (
-	EOF         = Error("EOF")
-	T           = Intern("t")
-	NIL         = Intern("nil")                // also: empty list
-	unassigned  = &Atom{Name: "#[unassigned]"} // uninterned symbol
-	unspecified = &Atom{Name: "#[unspecified return value]"}
+	EOF = Error("EOF")
+	T   = Intern("t")
+	NIL = Intern("nil") // also: empty list
 )
 
 // Value is a runtime representation of Lisp data.
 type Value interface {
-	Eval(Environment) Value
 	Equal(Value) Value
 	// If the value has a valid written representation, then this
 	// should output an external representation suitable for read.
@@ -37,19 +34,6 @@ func (v Atom) String() string {
 	return v.Name
 }
 
-func (v *Atom) Eval(env Environment) Value {
-	if v == T {
-		return T
-	}
-	if v == NIL {
-		return NIL
-	}
-	if v, ok := env.Lookup(v.Name); ok {
-		return v
-	}
-	return v // auto-quote
-}
-
 func (v *Atom) Equal(x Value) Value {
 	if _, ok := x.(*Atom); ok {
 		if v == x {
@@ -57,179 +41,4 @@ func (v *Atom) Equal(x Value) Value {
 		}
 	}
 	return NIL
-}
-
-// evalList evaluates a proper list of values, and returns the results
-// as a slice.
-func evalList(env Environment, v Value) (values []Value) {
-	if v == NIL {
-		return
-	}
-
-	list, ok := v.(*Cell)
-	if !ok {
-		Errorf("%s is not a list", v)
-	}
-
-	list.Walk(func(v Value) {
-		values = append(values, v.Eval(env))
-	})
-	return
-}
-
-// evalProgn evaluates a proper list of values, returning the last
-// value.
-func evalProgn(env Environment, v Value) Value {
-	var last Value = unspecified
-	if v == NIL {
-		return last
-	}
-
-	list, ok := v.(*Cell)
-	if !ok {
-		Errorf("implicit progn must be a list: %s", v)
-	}
-
-	list.Walk(func(v Value) {
-		last = v.Eval(env)
-	})
-	return last
-}
-
-// evalQuote evaluates the quote special form.
-func evalQuote(expr *Cell) Value {
-	v, ok := expr.Cdr.(*Cell)
-	if !ok {
-		Errorf("ill-formed special form: %s", expr)
-	}
-	if v.Cdr != NIL {
-		Errorf("ill-formed special form: %s", expr)
-	}
-
-	return v.Car
-}
-
-// evalCond evaluates the cond special form.
-func evalCond(env Environment, expr *Cell) Value {
-	next := expr
-	for next.Cdr != NIL {
-		v, ok := next.Cdr.(*Cell)
-		if !ok {
-			Errorf("ill-formed special form: %s", expr)
-		}
-		next = v
-
-		clause, ok := next.Car.(*Cell)
-		if !ok {
-			Errorf("ill-formed special form: %s", expr)
-		}
-
-		// if caadr is true, then we want to return the
-		// evaluation of the cdadr
-		if clause.Car.Eval(env) == T {
-			body, ok := clause.Cdr.(*Cell)
-			if !ok {
-				Errorf("ill-formed clause: %s", clause)
-			}
-			return evalProgn(env, body)
-		}
-	}
-	return NIL
-}
-
-// evalLabel evaluates the label special form.
-func evalLabel(env Environment, expr *Cell) Value {
-	label, ok := cadr(expr).(*Atom)
-	if !ok {
-		Errorf("ill-formed special form: %s", expr)
-	}
-
-	lambda, ok := caddr(expr).(*Cell)
-	if !ok {
-		Errorf("ill-formed special form: %s", expr)
-	}
-
-	// Evaluate lambda in an environment where it is able to
-	// reference the name defined by the label special form.
-	extEnv := NewEnv(env)
-	extEnv.Define(label.Name, unassigned)
-	fn := makeFunction(extEnv, lambda)
-
-	// Update the binding to the newly created function.
-	extEnv.Update(label.Name, fn)
-
-	return fn
-}
-
-// evalDefun defines a function permanently.
-func evalDefun(env Environment, expr *Cell) *Atom {
-	symbol, ok := cadr(expr).(*Atom)
-	if !ok {
-		Errorf("ill-formed special form: %s", expr)
-	}
-
-	body, ok := cddr(expr).(*Cell)
-	if !ok {
-		Errorf("ill-formed special form: %s", expr)
-	}
-
-	// By defining in the current environment, we add a permanent
-	// function, but don't need to find the toplevel. I think this
-	// differs from a typical Lisp, but falls within McCarthy's
-	// described behaviour.
-	env.Define(symbol.Name, unassigned)
-	fn := makeFunction(env, Cons(&Atom{Name: "lambda"}, body))
-	env.Update(symbol.Name, fn)
-
-	return symbol
-}
-
-// makeFunction creates a new function from the lambda special form.
-func makeFunction(env Environment, expr *Cell) Function {
-	f := &lambdaFunc{}
-
-	checkForm := func(ok bool) {
-		if !ok {
-			Errorf("ill-formed special form: %s", expr)
-		}
-	}
-
-	// extract arguments from: (cadr expr)
-	cdr, ok := expr.Cdr.(*Cell)
-	checkForm(ok)
-
-	if cdr.Car != NIL {
-		argExpr, ok := cdr.Car.(*Cell)
-		checkForm(ok)
-
-		// Gather each argument name so we can extend the environment.
-		argExpr.Walk(func(v Value) {
-			atom, ok := v.(*Atom)
-			checkForm(ok)
-
-			f.args = append(f.args, atom.Name)
-		})
-	}
-
-	// rest of epxression is the body: (cddr expr)
-	bodyExpr, ok := cdr.Cdr.(*Cell)
-	checkForm(ok)
-
-	f.fn = func(args []Value) Value {
-		if len(args) != len(f.args) {
-			Errorf("%s called with %d arguments, but requires %d",
-				f, len(args), len(f.args))
-		}
-
-		// Arguments are bound in a new environment.
-		extEnv := NewEnv(env)
-		for i, arg := range f.args {
-			extEnv.Define(arg, args[i])
-		}
-
-		// Body is evaluated in an implicit progn.
-		return evalProgn(extEnv, bodyExpr)
-	}
-
-	return f
 }

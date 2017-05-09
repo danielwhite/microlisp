@@ -2,7 +2,6 @@ package run
 
 import (
 	"bytes"
-	"regexp"
 	"strings"
 	"testing"
 
@@ -87,7 +86,9 @@ func TestEval(t *testing.T) {
 
 		{"(lambda)", "#[error: ill-formed special form: (lambda)]"},
 		{"(lambda ())", "#[error: ill-formed special form: (lambda nil)]"},
-		{"((lambda (x) x) 1 2)", regexp.MustCompile(`#\[error: #\[lambda .* \[x\]\] called with 2 arguments, but requires 1\]`)},
+		{"((lambda (x) x) 1 2)",
+			// FIXME: Error should print function reference.
+			"#[error: called with 2 arguments; requires exactly 1 argument]"},
 
 		{`((label ff (lambda (x)
                                (cond ((atom x) x)

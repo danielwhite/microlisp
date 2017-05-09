@@ -93,11 +93,6 @@ func (e *env) Equal(cmp Value) Value {
 	return NIL
 }
 
-// Eval implements the Value interface.
-func (e *env) Eval(Environment) Value {
-	return e
-}
-
 // Names implements the Environment interface, returning a list of all
 // defined symbols.
 func (e *env) Names() []string {

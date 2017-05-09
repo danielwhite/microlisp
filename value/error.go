@@ -21,11 +21,6 @@ func (e Error) String() string {
 	return fmt.Sprintf("#[error: %s]", string(e))
 }
 
-// Eval implements the Value interface.
-func (e Error) Eval(env Environment) Value {
-	return e
-}
-
 // Equal implments the Value interface.
 func (e Error) Equal(Value) Value {
 	return NIL

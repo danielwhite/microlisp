@@ -37,33 +37,6 @@ func (c *Cell) Walk(fn func(Value)) {
 	}
 }
 
-func (c *Cell) Eval(env Environment) Value {
-	if c == nil {
-		return NIL
-	}
-
-	car, ok := c.Car.(*Atom)
-	if ok {
-		switch car.Name {
-		case "quote":
-			return evalQuote(c)
-		case "cond":
-			return evalCond(env, c)
-		case "lambda":
-			return makeFunction(env, c)
-		case "label":
-			return evalLabel(env, c)
-		case "defun":
-			return evalDefun(env, c)
-		}
-	}
-
-	fn := c.Car.Eval(env)
-	args := evalList(env, c.Cdr)
-
-	return invoke(fn, args)
-}
-
 func (c *Cell) Equal(cmp Value) Value {
 	x, ok := cmp.(*Cell)
 	if !ok {

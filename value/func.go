@@ -18,31 +18,6 @@ type Function interface {
 	Invoke([]Value) Value
 }
 
-type lambdaFunc struct {
-	args []string
-	fn   func([]Value) Value
-}
-
-func (f *lambdaFunc) String() string {
-	// FIXME: args should be printed with `()`, instead of `[]`.
-	return fmt.Sprintf("#[lambda %p %s]", f, f.args)
-}
-
-func (f *lambdaFunc) Eval(Environment) Value {
-	return f
-}
-
-func (f *lambdaFunc) Equal(cmp Value) Value {
-	if x, ok := cmp.(*lambdaFunc); ok && f == x {
-		return T
-	}
-	return NIL
-}
-
-func (f *lambdaFunc) Invoke(args []Value) Value {
-	return f.fn(args)
-}
-
 // FuncN creates a Function value from a native Go function that
 // accepts a variable number of arguments.
 func FuncN(fn func(vs []Value) Value) Function {
@@ -53,9 +28,7 @@ func FuncN(fn func(vs []Value) Value) Function {
 // accepts a single argument.
 func Func1(fn func(Value) Value) Function {
 	return FuncN(func(vs []Value) Value {
-		if len(vs) != 1 {
-			Errorf("called with %d arguments; requires exactly 1 argument", len(vs))
-		}
+		assertArgs(1, len(vs))
 		return fn(vs[0])
 	})
 }
@@ -64,11 +37,32 @@ func Func1(fn func(Value) Value) Function {
 // accepts two arguments.
 func Func2(fn func(Value, Value) Value) Function {
 	return FuncN(func(vs []Value) Value {
-		if len(vs) != 2 {
-			Errorf("called with %d arguments; requires exactly 1 argument", len(vs))
-		}
+		assertArgs(2, len(vs))
 		return fn(vs[0], vs[1])
 	})
+}
+
+// FuncX creates a Function value from a native Go function that
+// accepts a specified number of arguments.
+func FuncX(n int, fn func([]Value) Value) Function {
+	return FuncN(func(vs []Value) Value {
+		assertArgs(n, len(vs))
+		return fn(vs)
+	})
+}
+
+func assertArgs(want, got int) {
+	if want == got {
+		return
+	}
+	switch {
+	case want == 1:
+		Errorf("called with %d arguments; requires exactly 1 argument", got)
+	case got == 1:
+		Errorf("called with 1 arguments; requires exactly %d arguments", want)
+	default:
+		Errorf("called with %d arguments; requires exactly %d arguments", got, want)
+	}
 }
 
 // nativeFunc holds a native function that accepts a variable number
@@ -79,10 +73,6 @@ type nativeFunc struct {
 
 func (f *nativeFunc) String() string {
 	return fmt.Sprintf("#[compiled-function %p]", f)
-}
-
-func (f *nativeFunc) Eval(Environment) Value {
-	return f
 }
 
 func (f *nativeFunc) Invoke(args []Value) Value {

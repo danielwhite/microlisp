@@ -35,7 +35,7 @@ func (t Token) String() string {
 	case Error:
 		return fmt.Sprintf("error: %s", t.Text)
 	case Atom, Comment:
-		return fmt.Sprintf("%s: %q", t.Type, t.Text)
+		return fmt.Sprintf("%v: %q", t.Type, t.Text)
 	}
 	return t.Type.String()
 }

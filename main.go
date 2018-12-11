@@ -10,6 +10,9 @@ import (
 
 var (
 	loadFlag = flag.String("load", "", "Load a file as if in the REPL")
+
+	// TODO(danielwhite): Teach -q flag to suppress results of evaluation.
+	quietFlag = flag.Bool("q", false, "Suppress the REPL prompt")
 )
 
 func main() {
@@ -23,6 +26,10 @@ func main() {
 			// for recovery in the event of a load error.
 			log.Printf("Unable to load file %q: %s", *loadFlag, err)
 		}
+	}
+
+	if *quietFlag {
+		run.DefaultPrompt = ""
 	}
 
 	// Enter the interactive REPL.

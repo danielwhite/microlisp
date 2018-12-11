@@ -11,10 +11,13 @@ import (
 	"whitehouse.id.au/microlisp/value"
 )
 
+// DefaultPrompt is printed by [Run] to prompt for input.
+var DefaultPrompt = "> "
+
 // Run a REPL loop, reading expressions from a reader, and writing the
 // evaluated values to a writer.
 func Run(r io.Reader, w io.Writer) error {
-	return run(r, w, "> ")
+	return run(r, w, DefaultPrompt)
 }
 
 func run(r io.Reader, w io.Writer, prompt string) error {

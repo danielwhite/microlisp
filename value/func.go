@@ -24,7 +24,7 @@ func FuncN(fn func(vs []Value) Value) Function {
 	return &nativeFunc{fn: fn}
 }
 
-// Func2 creates a Function value from a native Go function that
+// Func1 creates a Function value from a native Go function that
 // accepts a single argument.
 func Func1(fn func(Value) Value) Function {
 	return FuncN(func(vs []Value) Value {

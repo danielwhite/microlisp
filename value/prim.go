@@ -84,27 +84,29 @@ func apply(vs []Value) Value {
 	if len(vs) < 1 {
 		Errorf("called with %d arguments; requires at least 1 argument", len(vs))
 	}
-	if len(vs) == 1 {
+
+	fn, rest := vs[0], vs[1:]
+	if len(rest) == 0 {
 		return invoke(vs[0], []Value{})
 	}
 
 	// Each initial argument is prepended onto the final cons cell.
-	var args []Value
-	for _, v := range vs[1 : len(vs)-1] {
-		args = append(args, v)
+	last := rest[len(rest)-1]
+	head := last
+	for i := len(vs) - 2; i > 0; i-- {
+		head = Cons(vs[i], head)
 	}
 
-	// Flatten the final cons cell into the argument list.
-	last := vs[len(vs)-1]
-	cell, ok := last.(*Cell)
-	if !ok {
-		Errorf("apply: improper argument list: %s", vs[1])
+	// If the final cell is not a list, report error with all the arguments.
+	if _, ok := last.(*Cell); !ok {
+		Errorf("apply: improper argument list: %s", head)
 	}
-	cell.Walk(func(v Value) {
+
+	var args []Value
+	head.(*Cell).Walk(func(v Value) {
 		args = append(args, v)
 	})
-
-	return invoke(vs[0], args)
+	return invoke(fn, args)
 }
 
 // bindings returns an association list mapping each defined symbol in

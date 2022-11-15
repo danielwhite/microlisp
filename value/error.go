@@ -21,7 +21,14 @@ func (e Error) String() string {
 	return fmt.Sprintf("#[error: %s]", string(e))
 }
 
-// Equal implments the Value interface.
-func (e Error) Equal(Value) Value {
-	return NIL
+// Equal implements the Value interface.
+func (e Error) Equal(v Value) Value {
+	e2, ok := v.(Error)
+	if !ok {
+		return NIL
+	}
+	if e != e2 {
+		return NIL
+	}
+	return T
 }

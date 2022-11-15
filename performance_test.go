@@ -3,8 +3,8 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
 	"log"
+	"os"
 	"strings"
 	"testing"
 
@@ -100,7 +100,7 @@ func BenchmarkInvoke(b *testing.B) {
 }
 
 func readFile(name string) []byte {
-	b, err := ioutil.ReadFile(name)
+	b, err := os.ReadFile(name)
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -77,6 +77,8 @@ func BenchmarkInvoke(b *testing.B) {
 		{"caddar", "(quote ((a a' a'') b c))"},
 		{"cons", "1 2"},
 		{"equal", "(quote (a (b c) d (e (f) g))) (quote (a (b c) d (e (f) g)))"},
+		{"apply", "list (list d e f g)"},
+		{"apply", "list a b c (list d e f g)"},
 		{"lambda", "(a) a"},
 	}
 
